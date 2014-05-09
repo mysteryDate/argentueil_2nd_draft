@@ -1,0 +1,1 @@
+Openframeworks project for an installation at La Musée d’Argenueil. Hopefully will be mac/pc compatible (but only VC++ for the latter due to HD video requirements).
