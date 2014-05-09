@@ -10,12 +10,26 @@
         <X>-93</X>
         <Y>-226</Y>
         <Z>2.769999981</Z>
-        <IMGX>0</IMGX>
-        <IMGY>0</IMGY>
-        <IMGZ>0.000000000</IMGZ>
+        <IMGX>-38</IMGX>
+        <IMGY>-87</IMGY>
+        <IMGZ>2.779999971</IMGZ>
     </KINECT>
 </MAC>
 
 <CV>
-	<MINAREA>1000</MINAREA>
+    <MINAREA>1000</MINAREA>
+    <BOUNDS>
+        <LEFT>1</LEFT>
+        <TOP>1</TOP>
+        <RIGHT>601</RIGHT>
+        <BOTTOM>438</BOTTOM>
+    </BOUNDS>
+    <HAND>
+        <MAXSIZE>99</MAXSIZE>
+        <MINSIZE>56</MINSIZE>
+    </HAND>
+    <WRIST>
+        <MAXSIZE>33</MAXSIZE>
+        <MINSIZE>15</MINSIZE>
+    </WRIST>
 </CV>

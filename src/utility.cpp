@@ -59,3 +59,37 @@ ofPoint utility::transform(ofPoint input, int dx, int dy, float z, int r)
 	output = ofPoint(tx, ty);
 	return output;
 }
+
+vector< ofPoint > utility::findClosestPoints(ofPolyline one, ofPolyline two)
+{
+	float shortestDist = INFINITY;
+	vector< ofPoint > closest;
+	closest.resize(2);
+	for (int i = 0; i < one.size(); ++i)
+	{
+		for (int j = i; j < two.size(); ++j)
+		{
+			float dsquared = ofDistSquared(one[i].x, one[i].y, two[j].x, two[j].y);
+			if(dsquared <= shortestDist) {
+				closest[0] = one[i];
+				closest[1] = two[j];
+			}
+		}
+	}
+
+	return closest;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -20,6 +20,7 @@
 #include "ofxXmlSettings.h"
 // My headers
 #include "utility.h"
+#include "ArmContourFinder.h"
 #include <cmath>
 
 class ofApp : public ofBaseApp{

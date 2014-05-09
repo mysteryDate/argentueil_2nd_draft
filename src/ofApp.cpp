@@ -85,7 +85,7 @@ void ofApp::loadSettings() {
 		kinect_z = XML.getValue("KINECT:Z", 2.77);
 	XML.popTag();
 
-	ContourFinder.setMinArea(XML.getValue("CV:MINAREA"), 1000);
+	ContourFinder.setMinArea(XML.getValue("CV:MINAREA", 1000));
 
 	nearThreshold = XML.getValue("KINECT:NEARTHRESHOLD", 255);
 
@@ -161,15 +161,6 @@ void ofApp::keyPressed(int key){
 			bLearnBackground = true;
 
 		case 's': {
-			if (XML.getNumTags("MAC") == 0)
-				XML.addTag("MAC");
-			XML.pushTag("MAC");
-				if (XML.getNumTags("KINECT") == 0)
-					XML.addTag("KINECT");
-				XML.setValue("KINECT:IMGX", x);
-				XML.setValue("KINECT:IMGY", y);
-				XML.setValue("KINECT:IMGZ", z);
-			XML.popTag();
 			XML.saveFile("settings.xml");
 			cout << "Settings saved!";
 		}
