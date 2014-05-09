@@ -32,6 +32,7 @@ public:
 
 
 	void draw();
+	void drawFeedback();
 
 	void keyPressed(int key);
 	void mousePressed(int x, int y, int button);
@@ -65,9 +66,13 @@ public:
 
 	// Calibration settings
 	float video_x, video_y, video_w, video_h, video_r;
+	float kinect_x, kinect_y, kinect_z;
+	// Feedback
+	bool bDisplayFeedback;
 	//============ Non Permanent Variables ======//
 	// Calibration
 	int x, y, w, h;
 	float r, z;
+	int minArea;
 
 };
