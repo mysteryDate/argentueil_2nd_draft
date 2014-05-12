@@ -39,6 +39,7 @@ void ArmContourFinder::updateHands() {
 		if(handFound[l]) {
 			Hand blob;
 			blob.label = l;
+			blob.side = side[l];
 			blob.line = getHand(i);
 			blob.centroid = blob.line.getCentroid2D();
 			blob.tip = tips[l];

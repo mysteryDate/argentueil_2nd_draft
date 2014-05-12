@@ -34,6 +34,8 @@ public:
 
 	void draw();
 	void drawFeedback();
+	void drawHandMask(ofColor color = ofColor(0,0,0), bool bDrawArms = true);
+	void drawHandText();
 
 	void keyPressed(int key);
 	void mousePressed(int x, int y, int button);
@@ -74,6 +76,9 @@ public:
 	// For determinind what's going on
 	int currentPhase;
 	int nextPhaseFrame;
+
+	// Font display
+	ofxTrueTypeFontUC 	font;
 
 	// Calibration settings
 	float video_x, video_y, video_w, video_h, video_r;

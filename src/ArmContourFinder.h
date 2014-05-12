@@ -26,6 +26,7 @@ public:
 		int index;
 		unsigned int label;
 		ofVec2f velocity;
+		int side;
 
 		//For sorting by label
 		bool operator < (const Hand& str) const

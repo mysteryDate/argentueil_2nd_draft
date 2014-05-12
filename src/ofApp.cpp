@@ -14,7 +14,7 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(7000);
+	// video->setFrame(7000);
 	speed = 1;
 
 	//kinect instructions
@@ -24,7 +24,10 @@ void ofApp::setup(){
 	depthImage.allocate(kinect.width, kinect.height);
 	depthBackground.allocate(kinect.width, kinect.height);
 
-	currentPhase = 4;
+	// Hand display
+	font.loadFont("fonts/AltoPro-Normal.ttf", 12);
+
+	currentPhase = 0;
 	XML.pushTag("PHASEINFORMATION");
 	nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", 1200, currentPhase+1);
 	XML.popTag();
@@ -89,14 +92,18 @@ void ofApp::update(){
 
 	if(currentPhase == 5) {
 		maskFbo.begin();
-			brushImg.draw(mouseX-25, mouseY-25, 50, 50);
+			ofPushMatrix();
+			ofTranslate(-video_x, -video_y);
+			ofScale(video->getWidth() / video_w, video->getHeight() / video_h);
+			ofRotateZ(-video_r);
+				drawHandMask(ofColor(255,255,255,100), false);
+			ofPopMatrix();
 		maskFbo.end();
 
 		fbo.begin();
 			ofClear(0,0,0,0);
 			shader.begin();
 				shader.setUniformTexture("maskTex", maskFbo.getTextureReference(), 1);
-
 				secondVideo.draw(0,0);
 			shader.end();
 		fbo.end();
@@ -114,7 +121,10 @@ void ofApp::draw(){
 			fbo.draw(video_x, video_y, video_w, video_h);
 	ofPopMatrix();
 
-	// drawHandOverlay();
+	drawHandMask(ofColor(0,0,0));
+
+	if(currentPhase == 1 || currentPhase == 2 || currentPhase == 6 or currentPhase == 7 or currentPhase == 8)
+		drawHandText();
 
 	if(bDisplayFeedback)
 		drawFeedback();
@@ -157,6 +167,79 @@ void ofApp::adjustPhase() {
 	// Phase 5 is the magical phase
 	if(currentPhase == 5) {
 		secondVideo.update();
+	}
+
+}
+
+void ofApp::drawHandMask(ofColor color, bool bDrawArms) {
+
+	ofPushStyle();
+	ofSetColor(color);
+	ofFill();
+	ofPushMatrix();
+	ofTranslate(kinect_x, kinect_y);
+	ofScale(kinect_z, kinect_z);
+
+	if(bDrawArms) {
+	for (int i = 0; i < ContourFinder.size(); ++i)
+	{
+		ofPolyline blob = ContourFinder.getPolyline(i);
+		blob = blob.getSmoothed(4);
+
+		ofBeginShape();
+			for (int j = 0; j < blob.size(); ++j) {
+				ofVertex(blob[j]);
+			}
+		ofEndShape();
+	}
+	}
+	else{
+		for (int i = 0; i < ContourFinder.hands.size(); ++i)
+		{
+			ofPolyline blob = ContourFinder.hands[i].line;
+			blob = blob.getSmoothed(4);
+
+			ofBeginShape();
+				for (int j = 0; j < blob.size(); ++j) {
+					ofVertex(blob[j]);
+				}
+			ofEndShape();
+		}
+	}
+
+	ofPopMatrix();
+	ofPopStyle();
+
+}
+
+void ofApp::drawHandText() {
+
+	for (int i = 0; i < ContourFinder.hands.size(); ++i)
+	{
+		string palmText = "hand";
+		ofPoint center 	= ContourFinder.hands[i].centroid;
+		ofPoint tip 	= ContourFinder.hands[i].tip;
+		int side 		= ContourFinder.hands[i].side;
+		// Transform to proper reference frame
+		center.x = center.x * kinect_z + kinect_x;
+		center.y = center.y * kinect_z + kinect_y;
+		tip.x = tip.x * kinect_z + kinect_x;
+		tip.y = tip.y * kinect_z + kinect_y;
+
+		ofPushMatrix();
+			ofTranslate(center.x, center.y);
+			// Proper rotation
+			float h = sqrt( pow(center.x - tip.x, 2) + pow(center.y - tip.y, 2) );
+			float angle =  ofRadToDeg( asin( (tip.y - center.y) / h ));
+			if(tip.x < center.x) angle *= -1;
+			ofRotateZ(angle);
+			ofPoint textCenter = font.getStringBoundingBox(palmText, 0, 0).getCenter();
+			float width = font.getStringBoundingBox(palmText, 0, 0).getWidth();
+			ofTranslate(-textCenter.x, -textCenter.y);
+			float size = ofDist(tip.x, tip.y, center.x, center.y);
+			ofScale(size/width*0.75, size/width*0.75);
+			font.drawString(palmText, 0, 0);
+		ofPopMatrix();
 	}
 
 }
@@ -291,6 +374,28 @@ void ofApp::keyPressed(int key){
 		// 	z -= 0.01;
 		// 	break;
 
+		case '>':
+		case '.':
+			farThreshold ++;
+			if (farThreshold > 255) farThreshold = 255;
+			break;
+			
+		case '<':
+		case ',':
+			farThreshold --;
+			if (farThreshold < 0) farThreshold = 0;
+			break;
+			
+		case '+':
+		case '=':
+			nearThreshold ++;
+			if (nearThreshold > 255) nearThreshold = 255;
+			break;
+			
+		case '-':
+			nearThreshold --;
+			if (nearThreshold < 0) nearThreshold = 0;
+			break;
 
 		case 'f':
 			bDisplayFeedback = !bDisplayFeedback;
@@ -307,11 +412,11 @@ void ofApp::keyPressed(int key){
 			bLearnBackground = true;
 			break;
 
-		case 's': {
-			XML.saveFile("settings.xml");
-			cout << "Settings saved!";
-			break;
-		}
+		// case 's': {
+		// 	XML.saveFile("settings.xml");
+		// 	cout << "Settings saved!";
+		// 	break;
+		// }
 	}
 
 }
