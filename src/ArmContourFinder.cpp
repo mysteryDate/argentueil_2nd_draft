@@ -20,28 +20,18 @@ ArmContourFinder::ArmContourFinder() {
 void ArmContourFinder::update() {
 
 	//To run every frame
-	vector< unsigned int > labels = tracker.getDeadLabels();
-	for (int l = 0; l < labels.size(); ++l)
-	{
-		handFound[l] = false;
-		delete hands[l];
-	}
 
 	for (int i = 0; i < polylines.size(); ++i)
 	{
-		unsigned int l = getLabel(i);
-		if(!handFound(l)) {
-			handFound[l] = findHand(i);
-		}
-		else {
-			updateHand(l)
-		}
+		handFound[getLabel(i)] = findHand(i);
 	}
 }
 
-ofPolyline ArmContourFinder::getHandLine(int n) {
+ofPolyline ArmContourFinder::getHand(int n) {
 
-	ofPolyline line;
+	if(!handFound[getLabel(n)]) return;
+
+	ofPolyline hand;
 
 	unsigned int start, end;
 	polylines[n].getClosestPoint(wrists[getLabel(n)][1], &start);
@@ -50,60 +40,60 @@ ofPolyline ArmContourFinder::getHandLine(int n) {
 
 	int i = start;
 	while( i != end ) {
-		line.addVertex( polylines[n][i] );
+		hand.addVertex( polylines[n][i] );
 		i++;
 		if( i == polylines[n].size() )
 			i = 0;
 	}
-	line.addVertex( polylines[n][end] );
+	hand.addVertex( polylines[n][end] );
 	
 	// So that it closes up;
-	line.setClosed(true);
+	hand.setClosed(true);
 
-	return line;
+	return hand;
 
 }
 
 bool ArmContourFinder::findHand(int n) {
 
+	// ends[n].clear();
+	// tips[n] = ofPoint(0,0,0);
+	// wrists[n].clear();
+
 	unsigned int l = getLabel(n);
-	newHand = Hand;
 	//First, find ends
-	newHand.end = findEnd(n, newHand);
-	if( newHand.end.x == -1 and newHand.end.y == -1)
+	ends[l] = findEnd(n);
+	if( ends[l].x == -1 and ends[l].y == -1)
 		return false;
 
 	//Now, get the tip
-	newHand.tip = findTip(n, newHand;
+	tips[l] = findTip(n);
 	//See if it's far enough away
-	float d1 = ofDistSquared(newHand.tip.x, newHand.tip.y, newHand.end.x, newHand.end.y);
-	float d2 = ofDistSquared(newHand.tip.x, newHand.tip.y, newHand.end.x, newHand.end.y);
+	float d1 = ofDistSquared(tips[l].x, tips[l].y, ends[l].x, ends[l].y);
+	float d2 = ofDistSquared(tips[l].x, tips[l].y, ends[l].x, ends[l].y);
 	if( d1 < MIN_HAND_SIZE * MIN_HAND_SIZE and d2 < MIN_HAND_SIZE * MIN_HAND_SIZE )
 		return false; // Too small!
 
 	//Now find the wrists
-	newHand.wrists = findWrists(n, newHand);
-	if( newHand.wrists.size() != 2 ) return false;
+	wrists[l] = findWrists(n);
+	if( wrists[l].size() != 2 ) return false;
 
-	newHand.tip = refitTip(n, newHand);
+	tips[l] = refitTip(n);
 
-	d1 = ofDistSquared(newHand.wrists[0].x, newHand.wrists[0].y, newHand.tip.x, newHand.tip.y);
-	d2 = ofDistSquared(newHand.wrists[1].x, newHand.wrists[1].y, newHand.tip.x, newHand.tip.y);
+	d1 = ofDistSquared(wrists[l][0].x, wrists[l][0].y, tips[l].x, tips[l].y);
+	d2 = ofDistSquared(wrists[l][1].x, wrists[l][1].y, tips[l].x, tips[l].y);
 	if(d1 <= MIN_HAND_SIZE * MIN_HAND_SIZE or d1 >= MAX_HAND_SIZE * MAX_HAND_SIZE 
 		or d2 <= MIN_HAND_SIZE * MIN_HAND_SIZE or d2 >= MAX_HAND_SIZE * MAX_HAND_SIZE) {
-		newHand.wrists = findWrists(n, newHand);
-		if(newHand.wrists.size() != 2)
+		wrists[l] = findWrists(n);
+		if(wrists[l].size() != 2)
 			return false;
 	}
 
-	newHand.boxCenter = ofxCv::toOf(contourFinder.getCenter(n));
-	newHand.line = getHandLine(n, newHand);
-	hands[l] = newHand;
 	return true;
 
 }
 
-ofPoint ArmContourFinder::findEnd(int n, Hand newHand) {
+ofPoint ArmContourFinder::findEnd(int n) {
 
 	vector< ofPoint > pts = polylines[n].getVertices();
 	vector< ofPoint > endPoints;
@@ -131,17 +121,17 @@ ofPoint ArmContourFinder::findEnd(int n, Hand newHand) {
 
 		endPoints.resize(1);
 
-		if(endPoints[0].x <= bounds[0] + 10) newHand.side = 0;
-		else if(endPoints[0].y <= bounds[1] + 10) newHand.side = 1;
-		else if(endPoints[0].x >= bounds[2] - 10) newHand.side = 2;
-		else if(endPoints[0].y >= bounds[3] - 10) newHand.side = 3;
+		if(endPoints[0].x <= bounds[0] + 10) side[l] = 0;
+		else if(endPoints[0].y <= bounds[1] + 10) side[l] = 1;
+		else if(endPoints[0].x >= bounds[2] - 10) side[l] = 2;
+		else if(endPoints[0].y >= bounds[3] - 10) side[l] = 3;
 	}
 
-	// Todo update
+
 	if(endPoints.size() == 0) {
 		if(handFound[l]) {
 			ofPoint centroid = polylines[n].getCentroid2D();
-			int thisSide = newHand.side;
+			int thisSide = side[l];
 			// assume they're still on the same side
 			ofPoint mark;
 			if(thisSide == 0 or thisSide == 2)
@@ -152,7 +142,6 @@ ofPoint ArmContourFinder::findEnd(int n, Hand newHand) {
 		}
 		else return ofPoint(-1, -1);
 	}
-	// --
 
 
 
@@ -191,11 +180,10 @@ ofPoint ArmContourFinder::findEnd(int n, Hand newHand) {
 		}
 	}
 
-	// TODO update
 	if(distances.size() == 2) {
 		if( abs(distances[0] - distances[1]) < 400 ) {
-			float d1 = ofDistSquared(newHand.end.x, newHand.end.y, verts[0].x, verts[0].y);
-			float d2 = ofDistSquared(newHand.end.x, newHand.end.y, verts[1].x, verts[1].y);
+			float d1 = ofDistSquared(ends[l].x, ends[l].y, verts[0].x, verts[0].y);
+			float d2 = ofDistSquared(ends[l].x, ends[l].y, verts[1].x, verts[1].y);
 			if(d1 < d2)
 				end = verts[0];
 			else
@@ -208,32 +196,31 @@ ofPoint ArmContourFinder::findEnd(int n, Hand newHand) {
 
 }
 
-ofPoint ArmContourFinder::findTip(int n, Hand newHand) {
+ofPoint ArmContourFinder::findTip(int n) {
 
 	//Create a line connecting the center of the base of the arm to the center of the bounding box
 	ofPoint boxCenter = ofxCv::toOf(getCenter(n));
+	unsigned int l = getLabel(n);
 
-	float xn = 3*boxCenter.x - 2*newHand.end.x;
-	float yn = 3*boxCenter.y - 2*newHand.end.y;
+	float xn = 3*boxCenter.x - 2*ends[l].x;
+	float yn = 3*boxCenter.y - 2*ends[l].y;
 	
 	ofPoint mark = ofPoint(xn, yn);
 
 	ofPoint newTip = polylines[n].getClosestPoint(mark);
 
-	// TODO update
 	//If our old tip is still good, keep it
 	ofPoint closestTip = polylines[n].getClosestPoint(tips[getLabel(n)]);
 	float dist = ofDistSquared(closestTip.x, closestTip.y, newTip.x, newTip.y);
 	if(dist < 100) { //TODO change magic number
 		return closestTip;
 	}
-	// ----
 
 	return newTip;
 
 }
 
-vector < ofPoint > ArmContourFinder::findWrists(int n, Hand newHand) {
+vector < ofPoint > ArmContourFinder::findWrists(int n) {
 
 	unsigned int l = getLabel(n);
 	//Square our distances now, because premature optimization
@@ -242,7 +229,6 @@ vector < ofPoint > ArmContourFinder::findWrists(int n, Hand newHand) {
 	int maxWrist = MAX_WRIST_WIDTH * MAX_WRIST_WIDTH;
 	int minWrist = MIN_WRIST_WIDTH * MIN_WRIST_WIDTH;
 	float distSquared;
-	// TODO update
 	if(wrists[l].size() == 2) {
 		//If the old wrists still work, keep em
 		vector< ofPoint > closestWrists;
@@ -311,7 +297,7 @@ vector < ofPoint > ArmContourFinder::findWrists(int n, Hand newHand) {
 
 }
 
-ofPoint ArmContourFinder::refitTip(int n, Hand newHand)
+ofPoint ArmContourFinder::refitTip(int n)
 {	
 	unsigned int l = getLabel(n);
 	ofPoint midWrist = ofPoint( (wrists[l][0].x + wrists[l][1].x)/2, (wrists[l][0].y + wrists[l][1].y)/2 );
