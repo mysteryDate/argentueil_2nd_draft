@@ -58,10 +58,16 @@ public:
 	ArmContourFinder 	ContourFinder;
 
 	// Videos
-	ofVideoPlayer 		video;
-	ofVideoPlayer 		video2;
-	ofVideoPlayer 		currentVideo;
+	ofVideoPlayer 		firstVideo;
+	ofVideoPlayer 		secondVideo;
+	ofVideoPlayer *		video;
+	float 				speed;
 
+	// Video blending
+	ofShader 			shader;
+	ofFbo 				fbo;
+	ofFbo 				maskFbo;
+	ofImage 			brushImg;
 
 	// For saving data
 	ofxXmlSettings 		XML;

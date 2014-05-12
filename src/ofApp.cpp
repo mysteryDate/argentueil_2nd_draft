@@ -5,11 +5,17 @@ void ofApp::setup(){
 
 	ofSetFrameRate(60);
 	ofBackground(0,0,0);  
+	XML.loadFile("settings.xml");
 	loadSettings();
 
-	video.loadMovie("videos/Map_Argenteuil_P1_v11.mov");
-	video2.loadMovie("videos/Map_Argenteuil_P2_v11.mov");
-	video.play();
+	firstVideo.loadMovie("videos/Map_Argenteuil_P1_v11.mov");
+	firstVideo.setLoopState(OF_LOOP_NONE);
+	secondVideo.loadMovie("videos/Map_Argenteuil_P2_v11.mov");
+	secondVideo.setLoopState(OF_LOOP_NONE);
+	firstVideo.play();
+	video = &firstVideo;
+	video->setFrame(7000);
+	speed = 1;
 
 	//kinect instructions
 	kinect.init();
@@ -18,8 +24,37 @@ void ofApp::setup(){
 	depthImage.allocate(kinect.width, kinect.height);
 	depthBackground.allocate(kinect.width, kinect.height);
 
-	currentPhase = 1;
-	nextPhaseFrame = XML.getValue("PHASES:2:STARTFRAME", 1200);
+	currentPhase = 4;
+	XML.pushTag("PHASEINFORMATION");
+	nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", 1200, currentPhase+1);
+	XML.popTag();
+
+	string shaderProgram = "#version 120\n \
+	#extension GL_ARB_texture_rectangle : enable\n \
+	\
+	uniform sampler2DRect tex0;\
+	uniform sampler2DRect maskTex;\
+	\
+	void main (void){\
+	vec2 pos = gl_TexCoord[0].st;\
+	\
+	vec3 src = texture2DRect(tex0, pos).rgb;\
+	float mask = texture2DRect(maskTex, pos).r;\
+	\
+	gl_FragColor = vec4( src , mask);\
+	}";
+	shader.setupShaderFromSource(GL_FRAGMENT_SHADER, shaderProgram);
+	shader.linkProgram();
+	fbo.allocate(video->getWidth(), video->getHeight());
+	maskFbo.allocate(video->getWidth(), video->getHeight());
+	// Apparently I need to clear these too
+	maskFbo.begin();
+		ofClear(0,0,0,255);
+	maskFbo.end();
+	fbo.begin();
+		ofClear(0,0,0,255);
+	fbo.end();
+	brushImg.loadImage("brush.png");
 
 }
 
@@ -48,8 +83,23 @@ void ofApp::update(){
 				pix[i] = 255;
 		}
 
-		// ContourFinder.findContours(depthImage);
-		// ContourFinder.update();
+		ContourFinder.findContours(depthImage);
+		ContourFinder.update();
+	}
+
+	if(currentPhase == 5) {
+		maskFbo.begin();
+			brushImg.draw(mouseX-25, mouseY-25, 50, 50);
+		maskFbo.end();
+
+		fbo.begin();
+			ofClear(0,0,0,0);
+			shader.begin();
+				shader.setUniformTexture("maskTex", maskFbo.getTextureReference(), 1);
+
+				secondVideo.draw(0,0);
+			shader.end();
+		fbo.end();
 	}
 
 }
@@ -59,7 +109,9 @@ void ofApp::draw(){
 
 	ofPushMatrix();
 		ofRotateZ(video_r);
-		video.draw(video_x, video_y, video_w, video_h);
+		video->draw(video_x, video_y, video_w, video_h);
+		if(currentPhase == 5)
+			fbo.draw(video_x, video_y, video_w, video_h);
 	ofPopMatrix();
 
 	// drawHandOverlay();
@@ -71,31 +123,40 @@ void ofApp::draw(){
 
 void ofApp::adjustPhase() {
 
-	XML.pushTag("PHASES");
-	int currentVideo = XML.getValue(ofToString(currentPhase)+":VIDEO", 1); 
-	if(currentVideo != 2)
-		video.update();
-	if(currentVideo != 1)
-		video2.update();
+	video->update();
+	XML.pushTag("PHASEINFORMATION");
 
-	int frame = video.getCurrentFrame();
-	if( frame == nextPhaseFrame) { // Change phase
+	int frame = video->getCurrentFrame();
+	if( frame >= nextPhaseFrame) { // Change phase
 		currentPhase++;
-		if(currentPhase > 10)
-			currentPhase = 1;
-		nextPhaseFrame = XML.getValue(ofToString(currentPhase+1)+":STARTFRAME", nextPhaseFrame + 1000);
+		if(currentPhase >= 10)
+			currentPhase = 0;
+		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
+		int v = XML.getValue("PHASE:VIDEO", 1, currentPhase);
+		if( v == 1 )
+			video = &firstVideo;
+		if( v == 2 )
+			video = &secondVideo;
+		if(currentPhase == 5) {
+			secondVideo.play();
+		}
+		if(currentPhase == 6) {
+			video = &secondVideo;
+			firstVideo.stop();
+			firstVideo.setFrame(0);
+		}
+		if(currentPhase == 0) {
+			secondVideo.stop();
+			secondVideo.setFrame(0);
+			firstVideo.play();
+			video = &firstVideo;
+		}
 	}
+	XML.popTag();
 
-	if(currentPhase == 6) {
-		video2.start();
-	}
-	if(currentPhase == 7) {
-		video.stop();
-		video.setFrame(0);
-	}
-	if(currentPhase == 1) {
-		video2.stop();
-		video.start();
+	// Phase 5 is the magical phase
+	if(currentPhase == 5) {
+		secondVideo.update();
 	}
 
 }
@@ -120,7 +181,10 @@ void ofApp::drawFeedback() {
 	reportStream
 	<< "nearThreshold: " << nearThreshold << endl
 	<< "farThreshold: " << farThreshold << endl
-	<< "frame: " << video.getCurrentFrame() << endl
+	<< "frame: " << video->getCurrentFrame() << endl
+	<< "currentPhase: " << currentPhase << endl
+	<< "nextPhaseFrame: " << nextPhaseFrame << endl
+	<< "speed: " << speed << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 	if  ( ContourFinder.size() == 1 ) {
 		ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
@@ -140,12 +204,11 @@ void ofApp::drawFeedback() {
 
 void ofApp::loadSettings() {
 
-	XML.loadFile("settings.xml");
 	XML.pushTag(ofToString(PLATFORM));
 		video_x = XML.getValue("VIDEO:X", 0);
 		video_y = XML.getValue("VIDEO:Y", 0);
-		video_w = XML.getValue("VIDEO:W", video.getWidth());
-		video_h = XML.getValue("VIDEO:H", video.getHeight());
+		video_w = XML.getValue("VIDEO:W", firstVideo.getWidth());
+		video_h = XML.getValue("VIDEO:H", firstVideo.getHeight());
 		video_r = XML.getValue("VIDEO:R", 0);
 
 		kinect_x = XML.getValue("KINECT:X", 0);
@@ -165,6 +228,18 @@ void ofApp::loadSettings() {
 void ofApp::keyPressed(int key){
 
 	switch(key) {
+
+		case OF_KEY_DOWN: 
+			speed *= 0.9;
+			firstVideo.setSpeed(speed);
+			secondVideo.setSpeed(speed);
+			break;
+
+		case OF_KEY_UP: 
+			speed *= 1.1;
+			firstVideo.setSpeed(speed);
+			secondVideo.setSpeed(speed);
+			break;
 
 		// case OF_KEY_LEFT: 
 		// 	x--;
@@ -222,10 +297,10 @@ void ofApp::keyPressed(int key){
 			break;
 
 		case ' ': 
-			if(video.isPaused()) 
-				video.setPaused(false);
+			if(video->isPaused())
+				video->setPaused(false);
 			else
-				video.setPaused(true);
+				video->setPaused(true);
 			break;
 
 		case OF_KEY_RETURN:
@@ -242,5 +317,4 @@ void ofApp::keyPressed(int key){
 }
 //--------------------------------------------------------------
 void ofApp::mousePressed(int mx, int my, int button){
-
 }

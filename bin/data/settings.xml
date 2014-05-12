@@ -32,65 +32,75 @@
         <MINSIZE>15</MINSIZE>
     </WRIST>
 </CV>
-<PHASES>
-    <1>
+<PHASEINFORMATION>
+    <PHASE>
+        <NUMBER>0</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>Intro</NAME>
         <STARTFRAME>0</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </1>
-    <2>
+    </PHASE>
+    <PHASE>
+        <NUMBER>1</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>Rivers</NAME>
         <STARTFRAME>1293</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </2>
-    <3>
+    </PHASE>
+    <PHASE>
+        <NUMBER>2</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>Natives</NAME>
         <STARTFRAME>2600</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </3>
-    <4>
+    </PHASE>
+    <PHASE>
+        <NUMBER>3</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>History</NAME>
         <STARTFRAME>4272</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </4>
-    <5>
+    </PHASE>
+    <PHASE>
+        <NUMBER>4</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>Beavers</NAME>
         <STARTFRAME>5600</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </5>
-    <6>
-        <VIDEO>12</VIDEO>
+    </PHASE>
+    <PHASE>
+        <NUMBER>5</NUMBER>
+        <VIDEO>1</VIDEO>
         <NAME>Trees</NAME>
         <STARTFRAME>7200</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </6>
-    <7>
+    </PHASE>
+    <PHASE>
+        <NUMBER>6</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Municipalities</NAME>
-        <STARTFRAME></STARTFRAME>
+        <STARTFRAME>9000</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </7>
-    <8>
+    </PHASE>
+    <PHASE>
+        <NUMBER>7</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Churches</NAME>
-        <STARTFRAME></STARTFRAME>
+        <STARTFRAME>3500</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </8>
-    <9>
+    </PHASE>
+    <PHASE>
+        <NUMBER>8</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Stations</NAME>
-        <STARTFRAME></STARTFRAME>
+        <STARTFRAME>4300</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </9>
-    <10>
+    </PHASE>
+    <PHASE>
+        <NUMBER>9</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Photos</NAME>
-        <STARTFRAME></STARTFRAME>
+        <STARTFRAME>5440</STARTFRAME>
         <ENDFRAME></ENDFRAME>
-    </10>
-</PHASES>
+    </PHASE>
+</PHASEINFORMATION>
