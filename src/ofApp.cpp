@@ -38,6 +38,7 @@ void ofApp::update(){
 		depthImage.threshold(2);
 
 		ContourFinder.findContours(depthImage);
+		ContourFinder.update();
 	}
 
 }
@@ -50,6 +51,8 @@ void ofApp::draw(){
 		video.draw(video_x, video_y, video_w, video_h);
 	ofPopMatrix();
 
+	// drawHandOverlay();
+
 	if(bDisplayFeedback)
 		drawFeedback();
 
@@ -61,9 +64,30 @@ void ofApp::drawFeedback() {
 	ofSetColor(0,255,0);
 	ContourFinder.draw();
 
+	ofSetColor(255,0,255);
+	for (int i = 0; i < ContourFinder.hands.size(); ++i)
+	{
+		ofCircle(ContourFinder.hands[i].end, 3);
+		ofCircle(ContourFinder.hands[i].tip, 3);
+		ofCircle(ContourFinder.hands[i].wrists[0], 3);
+		ofCircle(ContourFinder.hands[i].wrists[1], 3);
+	}
+
 	stringstream reportStream;
 	reportStream
+	<< "nearThreshold: " << nearThreshold << endl
+	<< "farThreshold: " << farThreshold << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
+	if( ContourFinder.size() == 1 ) {
+		ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
+		ofPoint min = rect.getMin();
+		ofPoint max = rect.getMax();
+		reportStream 
+		<< "minx: " << min.x << endl
+		<< "miny: " << min.y << endl
+		<< "maxx: " << max.x << endl
+		<< "maxy: " << max.y << endl;
+	}
 
 	ofDrawBitmapString(reportStream.str(), 20, 600);
 	ofPopStyle();
@@ -87,7 +111,8 @@ void ofApp::loadSettings() {
 
 	ContourFinder.setMinArea(XML.getValue("CV:MINAREA", 1000));
 
-	nearThreshold = XML.getValue("KINECT:NEARTHRESHOLD", 255);
+	farThreshold = XML.getValue("KINECT:FARTHRESHOLD", 2);
+	nearThreshold = XML.getValue("KINECT:NEARTHRESHOLD", farThreshold + 40);
 
 }
 

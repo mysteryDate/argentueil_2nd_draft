@@ -3,8 +3,8 @@
 ArmContourFinder::ArmContourFinder() {
 
 	// Find from the bounding boxes
-	bounds.push_back(1);
-	bounds.push_back(1);
+	bounds.push_back(22);
+	bounds.push_back(42);
 	bounds.push_back(601);
 	bounds.push_back(438);
 
@@ -15,15 +15,106 @@ ArmContourFinder::ArmContourFinder() {
 	MAX_WRIST_WIDTH = 33;
 	MIN_WRIST_WIDTH = 15;
 
+	smoothingRate = 0.5;
+
 }
 
 void ArmContourFinder::update() {
 
 	//To run every frame
-
 	for (int i = 0; i < polylines.size(); ++i)
 	{
 		handFound[getLabel(i)] = findHand(i);
+		updateHands();
+	}
+}
+
+void ArmContourFinder::updateHands() {
+
+	vector < Hand > newHands;
+
+	for (int i = 0; i < polylines.size(); ++i)
+	{
+		unsigned int l = getLabel(i);
+		if(handFound[l]) {
+			Hand blob;
+			blob.label = l;
+			blob.line = getHand(i);
+			blob.centroid = blob.line.getCentroid2D();
+			blob.tip = tips[l];
+			blob.wrists = wrists[l];
+			blob.end = ends[l];
+			blob.boxCenter = ofxCv::toOf(getCenter(i));
+			blob.index = i;
+			newHands.push_back(blob);
+		}
+	}
+
+	sort(newHands.begin(), newHands.end());
+
+	// Remove dead ones
+	for (int i = 0; i < hands.size(); ++i)
+	{
+		bool found = false;
+		unsigned int label = hands[i].label;
+		for (int j = 0; j < newHands.size(); ++j)
+		{
+			if(newHands[j].label == label) {
+				hands[i].index = newHands[j].index;
+				found = true;
+				break;
+			}
+		}
+		if(!found) {
+			hands.erase( hands.begin() + i );
+			i--; //So that it doesn't skip the next one
+		}
+	}
+
+	//Add new ones
+	for (int i = 0; i < newHands.size(); ++i)
+	{
+		bool found = false;
+		unsigned int label = newHands[i].label;
+		for (int j = 0; j < hands.size(); ++j)
+		{
+			if(hands[j].label == label) {
+				hands[j].index = newHands[i].index;
+				found = true;
+				break;
+			}
+		}
+		if(!found) {
+			hands.push_back(newHands[i]);
+		}
+	}
+
+	sort(hands.begin(), hands.end());
+
+	//Finally, the magic
+	for (int i = 0; i < hands.size(); ++i)
+	{
+		Hand handCopy = newHands[i];
+		// Doesn't copy vectors, do it by 'hand' for now
+		handCopy.wrists = newHands[i].wrists;
+		handCopy.velocity = newHands[i].velocity;
+
+		ofPoint oldKeypoints[] = {hands[i].centroid, hands[i].end, hands[i].tip, hands[i].wrists[0], hands[i].wrists[1]};
+		ofPoint * keypoints[] = {&handCopy.centroid, &handCopy.end, &handCopy.tip, &handCopy.wrists[0], &handCopy.wrists[1]};
+
+		if( !(newHands[i].centroid.x == 0 and newHands[i].centroid.y == 0) ) 
+		{
+			for (int j = 0; j < 5; ++j)
+			{
+				float smoothedX = ofLerp(keypoints[j]->x, oldKeypoints[j].x, smoothingRate);
+				float smoothedY = ofLerp(keypoints[j]->y, oldKeypoints[j].y, smoothingRate);
+				*keypoints[j] = ofPoint(smoothedX, smoothedY);
+			}
+			handCopy.velocity = ofVec2f((keypoints[0]->x - oldKeypoints[0].x)/2, (keypoints[0]->y - oldKeypoints[0].y)/2);	
+		}
+
+		hands[i] = handCopy;
+
 	}
 }
 
@@ -102,7 +193,7 @@ ofPoint ArmContourFinder::findEnd(int n) {
 
 	for (int i = 0; i < pts.size(); ++i)
 	{
-		if(pts[i].x <= bounds[0] + 0 || pts[i].y <= bounds[1] + 0
+		if(pts[i].x <= bounds[0] + 2 || pts[i].y <= bounds[1] + 2
  			|| pts[i].x >= bounds[2] - 2 || pts[i].y >=  bounds[3] - 2) {
 			endPoints.push_back(pts[i]);
 		}

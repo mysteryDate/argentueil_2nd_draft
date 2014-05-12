@@ -55,8 +55,7 @@ public:
 	cv::Mat 			croppedInput;
 
 	// Computer vision
-	ofxCv::ContourFinder ContourFinder;
-	vector< ofPolyline > contours; // Contours in our reference frame
+	ArmContourFinder 	ContourFinder;
 
 	// Videos
 	ofVideoPlayer 		video;

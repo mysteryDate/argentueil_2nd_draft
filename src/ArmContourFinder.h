@@ -15,6 +15,25 @@ public:
 	map< unsigned int, int > side;
 
 	void update();
+	struct Hand
+	{
+		ofPolyline line;
+		ofPoint centroid;
+		ofPoint tip;
+		ofPoint end;
+		ofPoint boxCenter;
+		vector< ofPoint > wrists;
+		int index;
+		unsigned int label;
+		ofVec2f velocity;
+
+		//For sorting by label
+		bool operator < (const Hand& str) const
+		{
+			return (label < str.label);
+		}
+	};
+	vector< Hand >		hands;
 	ofPolyline getHand(int n);
 	
 	int MIN_HAND_SIZE;
@@ -22,12 +41,14 @@ public:
 	int MAX_WRIST_WIDTH;
 	int MIN_WRIST_WIDTH;
 	int MAX_MOVEMENT_DISTANCE;
+	int smoothingRate;
 
 	vector< int > bounds;
 
 private:
 
 	bool findHand(int n);
+	void 				updateHands();
 	ofPoint			 	findEnd(int n);
 	ofPoint				findTip(int n);
 	vector< ofPoint > 	findWrists(int n);
