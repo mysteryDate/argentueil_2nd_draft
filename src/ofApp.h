@@ -30,7 +30,7 @@ public:
 	void loadSettings();
 
 	void update();
-
+	void adjustPhase();
 
 	void draw();
 	void drawFeedback();
@@ -59,16 +59,22 @@ public:
 
 	// Videos
 	ofVideoPlayer 		video;
+	ofVideoPlayer 		video2;
+	ofVideoPlayer 		currentVideo;
 
 
 	// For saving data
 	ofxXmlSettings 		XML;
+	// For determinind what's going on
+	int currentPhase;
+	int nextPhaseFrame;
 
 	// Calibration settings
 	float video_x, video_y, video_w, video_h, video_r;
 	float kinect_x, kinect_y, kinect_z;
 	// Feedback
 	bool bDisplayFeedback;
+
 	//============ Non Permanent Variables ======//
 	// Calibration
 	int x, y, w, h;

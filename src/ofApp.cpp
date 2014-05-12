@@ -8,6 +8,7 @@ void ofApp::setup(){
 	loadSettings();
 
 	video.loadMovie("videos/Map_Argenteuil_P1_v11.mov");
+	video2.loadMovie("videos/Map_Argenteuil_P2_v11.mov");
 	video.play();
 
 	//kinect instructions
@@ -17,6 +18,8 @@ void ofApp::setup(){
 	depthImage.allocate(kinect.width, kinect.height);
 	depthBackground.allocate(kinect.width, kinect.height);
 
+	currentPhase = 1;
+	nextPhaseFrame = XML.getValue("PHASES:2:STARTFRAME", 1200);
 
 }
 
@@ -24,7 +27,7 @@ void ofApp::setup(){
 void ofApp::update(){
 
 	kinect.update();
-	video.update();
+	adjustPhase();
 
 	if(kinect.isFrameNew()) {
 
@@ -33,12 +36,20 @@ void ofApp::update(){
 			depthBackground = depthImage;
 			bLearnBackground = false;
 		}
-		// Take out too close pixels
+		// Background subtraction
 		depthImage -= depthBackground;
-		depthImage.threshold(2);
+		// Remove out of bounds
+		unsigned char *pix = depthImage.getPixels();
+		for (int i = 0; i < depthImage.getHeight() * depthImage.getWidth(); ++i)
+		{
+			if(pix[i] > nearThreshold || pix[i] < farThreshold)
+				pix[i] = 0;
+			else
+				pix[i] = 255;
+		}
 
-		ContourFinder.findContours(depthImage);
-		ContourFinder.update();
+		// ContourFinder.findContours(depthImage);
+		// ContourFinder.update();
 	}
 
 }
@@ -58,9 +69,41 @@ void ofApp::draw(){
 
 }
 
+void ofApp::adjustPhase() {
+
+	XML.pushTag("PHASES");
+	int currentVideo = XML.getValue(ofToString(currentPhase)+":VIDEO", 1); 
+	if(currentVideo != 2)
+		video.update();
+	if(currentVideo != 1)
+		video2.update();
+
+	int frame = video.getCurrentFrame();
+	if( frame == nextPhaseFrame) { // Change phase
+		currentPhase++;
+		if(currentPhase > 10)
+			currentPhase = 1;
+		nextPhaseFrame = XML.getValue(ofToString(currentPhase+1)+":STARTFRAME", nextPhaseFrame + 1000);
+	}
+
+	if(currentPhase == 6) {
+		video2.start();
+	}
+	if(currentPhase == 7) {
+		video.stop();
+		video.setFrame(0);
+	}
+	if(currentPhase == 1) {
+		video2.stop();
+		video.start();
+	}
+
+}
+
 void ofApp::drawFeedback() {
 
 	ofPushStyle();
+	depthImage.draw(0,0);
 	ofSetColor(0,255,0);
 	ContourFinder.draw();
 
@@ -77,8 +120,9 @@ void ofApp::drawFeedback() {
 	reportStream
 	<< "nearThreshold: " << nearThreshold << endl
 	<< "farThreshold: " << farThreshold << endl
+	<< "frame: " << video.getCurrentFrame() << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
-	if( ContourFinder.size() == 1 ) {
+	if  ( ContourFinder.size() == 1 ) {
 		ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
 		ofPoint min = rect.getMin();
 		ofPoint max = rect.getMax();
@@ -110,6 +154,7 @@ void ofApp::loadSettings() {
 	XML.popTag();
 
 	ContourFinder.setMinArea(XML.getValue("CV:MINAREA", 1000));
+
 
 	farThreshold = XML.getValue("KINECT:FARTHRESHOLD", 2);
 	nearThreshold = XML.getValue("KINECT:NEARTHRESHOLD", farThreshold + 40);
@@ -176,18 +221,21 @@ void ofApp::keyPressed(int key){
 			bDisplayFeedback = !bDisplayFeedback;
 			break;
 
-		case ' ':
+		case ' ': 
 			if(video.isPaused()) 
 				video.setPaused(false);
 			else
 				video.setPaused(true);
+			break;
 
 		case OF_KEY_RETURN:
 			bLearnBackground = true;
+			break;
 
 		case 's': {
 			XML.saveFile("settings.xml");
 			cout << "Settings saved!";
+			break;
 		}
 	}
 
