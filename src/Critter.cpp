@@ -18,9 +18,7 @@ Critter::Critter(int numFrames) {
 
 }
 
-void Critter::update(vector< ofPolyline > hands) {
-
-	ofVec2f nearestHand; // The vector to the closest hand
+void Critter::update(ofVec2f nearestHand) {
 
 	nextFrame += ofMap(v, 0, 10, 0, 2);
 	currentFrame = floor(nextFrame);
@@ -42,8 +40,7 @@ void Critter::update(vector< ofPolyline > hands) {
 
 	vectors[0] = ofVec2f(v * cos(d/180*PI) * 10, v * sin(d/180*PI) * 10);
 
-	if(hands.size() != 0) {
-		nearestHand = findClosestHand(hands); 
+	if(nearestHand.length() != 0) {
 		vectors[2] = nearestHand;
 		float fear = ofMap(nearestHand.length(), 500, 0, 0, 1, true);
         float angle = vectors[0].angle(nearestHand);
@@ -57,14 +54,14 @@ void Critter::update(vector< ofPolyline > hands) {
 }
 
 // Returns a vector from critter to closest hand
-ofVec2f Critter::findClosestHand(vector < ofPolyline > hands) {
+ofVec2f Critter::findClosestHand(vector < ofPoint > handCentroids) {
 
 	ofVec2f nearestHand;
 	float minDist = 999999; // I hate doing this
 
-	for (int i = 0; i < hands.size(); ++i)
+	for (int i = 0; i < handCentroids.size(); ++i)
 	{
-		ofPoint center = hands[i].getCentroid2D();
+		ofPoint center = handCentroids[i];
 		float dist = ofDistSquared(p.x, p.y, center.x, center.y);
 		if(dist < minDist) {
 			minDist = dist;

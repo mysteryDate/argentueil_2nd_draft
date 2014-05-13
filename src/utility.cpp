@@ -51,6 +51,19 @@ vector< ofPoint > utility::transform(vector< ofPoint > input, int dx, int dy, fl
 	return output;
 }
 
+ofPolyline utility::transform(ofPolyline input, int dx, int dy, float z, int r)
+{
+	ofPolyline output;		
+	for (int i = 0; i < input.size(); ++i)
+	{
+		ofPoint pt = input[i];
+		float tx = pt.x * z + dx;
+		float ty = pt.y * z + dy;
+		output.addVertex(ofPoint(tx, ty));
+	}
+	return output;
+}
+
 ofPoint utility::transform(ofPoint input, int dx, int dy, float z, int r)
 {
 	ofPoint output;		

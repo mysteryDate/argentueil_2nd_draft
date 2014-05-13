@@ -28,10 +28,10 @@ public:
 
 	map < int, ofVec2f > vectors;
 
-	void update(vector< ofPolyline > hands);
+	void update(ofVec2f nearestHand);
 
 private:
 
-	ofVec2f findClosestHand(vector< ofPolyline > hands);
+	ofVec2f findClosestHand(vector< ofPoint > handCentroids);
 
 };

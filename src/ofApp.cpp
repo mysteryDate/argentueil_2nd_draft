@@ -14,7 +14,7 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(7000);
+	video->setFrame(5000);
 	speed = 1;
 
 	//kinect instructions
@@ -32,6 +32,20 @@ void ofApp::setup(){
 	nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", 1200, currentPhase+1);
 	XML.popTag();
 
+	// Set up beavers for phase 4
+	XML.pushTag("BEAVERS");
+	numBeaverFrames = XML.getValue("NUMFRAMES", 24);
+	float beaverScale = XML.getValue("IMGSCALE", 0.2);
+	for (int i = 0; i < numBeaverFrames; ++i)
+	{	
+		ofImage img;
+		img.loadImage("beaver/beaver-"+ofToString(i)+".png");
+		img.resize(img.getWidth()*beaverScale, img.getHeight()*beaverScale);
+		gifFrames.push_back(img);
+	}
+	XML.popTag();
+
+	// Setting up shaders for phase 5
 	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shadersGL2/shader.frag");
 	shader.linkProgram();
 	fbo.allocate(video->getWidth(), video->getHeight());
@@ -76,6 +90,17 @@ void ofApp::update(){
 		ContourFinder.update();
 	}
 
+	// Beaver phase
+	if(currentPhase == 4) {
+		if(ofGetFrameNum() % 30 == 0 && Beavers.size() < 120) {
+			Critter newBeaver = Critter(numBeaverFrames); 
+			Beavers.push_back(newBeaver);
+		}
+	}
+	if(Beavers.size() > 0)
+		updateBeavers();
+
+	// Transition phase
 	if(currentPhase == 5) {
 		maskFbo.begin();
 			ofPushMatrix();
@@ -109,8 +134,21 @@ void ofApp::draw(){
 
 	drawHandMask(ofColor(0,0,0));
 
-	// if(currentPhase == 1 || currentPhase == 2 || currentPhase == 6 or currentPhase == 7 or currentPhase == 8)
+	if(currentPhase == 1 || currentPhase == 2 || currentPhase == 6 or currentPhase == 7 or currentPhase == 8)
 		drawHandText();
+
+	for (int i = 0; i < Beavers.size(); ++i)
+	{		
+		Critter CB = Beavers[i];
+		if(!CB.hidden) {
+			ofPushMatrix();
+	        ofTranslate(CB.p.x, CB.p.y); // Translate to the center of the beaver
+			ofRotateZ(CB.d);
+				gifFrames[CB.currentFrame].setAnchorPercent(0.5,0.5); // So that we draw from the middle
+				gifFrames[CB.currentFrame].draw(0,0);
+			ofPopMatrix();
+		}
+	}
 
 	if(bDisplayFeedback)
 		drawFeedback();
@@ -155,6 +193,62 @@ void ofApp::adjustPhase() {
 		secondVideo.update();
 	}
 
+}
+
+void ofApp::updateBeavers() {
+
+	float Iw = gifFrames[0].getWidth();
+	float Ih = gifFrames[0].getHeight();
+
+	for (int i = 0; i < Beavers.size(); ++i)
+	{
+		// Find vector to closest hand
+		ofVec2f nearestHand = ofVec2f(0,0);
+		float minDist = INFINITY; 
+
+		for (int j = 0; j < ContourFinder.size(); ++j)
+		{
+			ofPoint center = utility::transform(ContourFinder.getPolyline(j).getCentroid2D(), kinect_x, kinect_y, kinect_z);
+			float dist = ofDistSquared(Beavers[i].p.x, Beavers[i].p.y, center.x, center.y);
+			if(dist < minDist) {
+				minDist = dist;
+				nearestHand = ofVec2f(center.x - Beavers[i].p.x, center.y - Beavers[i].p.y);
+			}
+		}
+		Beavers[i].update(nearestHand);
+		Critter * B = &Beavers[i];
+		vector< ofPoint > corners;
+		for (int j = 0; j < 4; ++j)
+		{
+			int xd = (j & 1)*2 - 1;
+			int yd = (j & 2) - 1;
+			float x = B->p.x + cos(B->d*PI/180)*Iw*xd/2 + sin(B->d*PI/180)*Ih*yd/2;
+			float y = B->p.y - sin(B->d*PI/180)*Iw*xd/2 + cos(B->d*PI/180)*Ih*yd/2;
+			corners.push_back(ofPoint(x,y));
+		}
+		// Beaver has left the building
+		if(B->p.x > ofGetWindowWidth() + Iw or B->p.x < 0 - Iw or B->p.y > ofGetWindowHeight() + Iw or B->p.y < 0 - Iw)
+				Beavers.erase(Beavers.begin() + i);
+		// Collision
+		B->hidden = false; 
+		for (int j = 0; j < ContourFinder.hands.size(); ++j)
+		{
+			ofPolyline line = utility::transform(ContourFinder.hands[j].line, kinect_x, kinect_y, kinect_z);
+			if( line.inside(B->p.x, B->p.y) )  {
+				B->v = 0;
+				B->hidden = true;
+				continue;
+			}
+			for (int k = 0; k < corners.size(); ++k)
+			{
+				if( line.inside(corners[k]) ) {
+					B->v = 0;
+					B->hidden = true;
+				}
+			}
+		}
+
+	}
 }
 
 void ofApp::drawHandMask(ofColor color, bool bDrawArms) {

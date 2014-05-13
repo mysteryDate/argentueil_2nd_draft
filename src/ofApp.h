@@ -21,6 +21,7 @@
 // My headers
 #include "utility.h"
 #include "ArmContourFinder.h"
+#include "Critter.h"
 #include <cmath>
 
 class ofApp : public ofBaseApp{
@@ -31,6 +32,7 @@ public:
 
 	void update();
 	void adjustPhase();
+	void updateBeavers();
 
 	void draw();
 	void drawFeedback();
@@ -70,6 +72,11 @@ public:
 	ofFbo 				fbo;
 	ofFbo 				maskFbo;
 	ofImage 			brushImg;
+
+	// Beaver game
+	vector< Critter > 	Beavers;
+	vector< ofImage > 	gifFrames;
+	int 				numBeaverFrames;
 
 	// For saving data
 	ofxXmlSettings 		XML;
