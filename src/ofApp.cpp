@@ -14,7 +14,7 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(5000);
+	video->setFrame(1200);
 	speed = 1;
 
 	//kinect instructions
@@ -59,7 +59,18 @@ void ofApp::setup(){
 	fbo.end();
 	brushImg.loadImage("brush.png");
 
-}
+	regionNames.push_back("Rivière des\nOutaouais");
+	regionNames.push_back("Rivière\ndu Nord");
+	regionNames.push_back("Rivière\nOuest");
+	regionNames.push_back("Rivière\nCalumet");
+	regionNames.push_back("Rivière\nRouge");
+	activeRegion = 0;
+	for (int i = 0; i < regionNames.size(); ++i)
+	{
+		regions.insert(pair<string, ofPolyline>(regionNames[i], ofPolyline()));
+	}
+
+}	
 
 //--------------------------------------------------------------
 void ofApp::update(){
@@ -161,16 +172,12 @@ void ofApp::adjustPhase() {
 	XML.pushTag("PHASEINFORMATION");
 
 	int frame = video->getCurrentFrame();
+	cout << frame << endl;
 	if( frame >= nextPhaseFrame) { // Change phase
 		currentPhase++;
 		if(currentPhase >= 10)
 			currentPhase = 0;
 		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
-		int v = XML.getValue("PHASE:VIDEO", 1, currentPhase);
-		if( v == 1 )
-			video = &firstVideo;
-		if( v == 2 )
-			video = &secondVideo;
 		if(currentPhase == 5) {
 			secondVideo.play();
 		}
@@ -185,6 +192,7 @@ void ofApp::adjustPhase() {
 			firstVideo.play();
 			video = &firstVideo;
 		}
+		updateRegions();
 	}
 	XML.popTag();
 
@@ -192,6 +200,29 @@ void ofApp::adjustPhase() {
 	if(currentPhase == 5) {
 		secondVideo.update();
 	}
+
+}
+
+void ofApp::updateRegions() {
+
+	regions.clear();
+	XML.pushTag("PHASE", currentPhase);
+	XML.pushTag("REGIONS");
+	for (int i = 0; i < XML.getNumTags("REGION"); ++i)
+	{
+		XML.pushTag("REGION", i);
+		string name = XML.getValue("NAME", "unknown");
+		regions.insert(pair<string, ofPolyline>(name, ofPolyline()));
+		for (int j = 0; j < XML.getNumTags("PT"); ++j)
+		{
+			int x = XML.getValue("PT:X", 0, j);
+			int y = XML.getValue("PT:Y", 0, j);
+			regions[name].addVertex(ofPoint(x,y));
+		}
+		XML.popTag();
+	}
+    XML.popTag();
+    XML.popTag();
 
 }
 
@@ -348,6 +379,18 @@ void ofApp::drawFeedback() {
 		ofCircle(ContourFinder.hands[i].wrists[0], ContourFinder.MIN_WRIST_WIDTH);
 	}
 
+	ofPushStyle();
+	int r = 0, g = 0, b = 0;
+	for(auto i=regions.begin(); i!=regions.end(); ++i) {
+		ofSetColor(r,g,b);
+		i->second.draw();
+		r += 100;
+		g += 150;
+		b += 50;
+
+	}
+	ofPopStyle();
+
 	stringstream reportStream;
 	reportStream
 	<< "nearThreshold: " << nearThreshold << endl
@@ -355,6 +398,7 @@ void ofApp::drawFeedback() {
 	<< "frame: " << video->getCurrentFrame() << endl
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
+	<< "activeRegion: " << regionNames[activeRegion] << endl
 	// << "speed: " << speed << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 	if  ( ContourFinder.size() == 1 ) {
@@ -410,6 +454,20 @@ void ofApp::keyPressed(int key){
 			speed *= 1.1;
 			firstVideo.setSpeed(speed);
 			secondVideo.setSpeed(speed);
+			break;
+
+		case OF_KEY_LEFT: 
+			if(activeRegion == 0)
+				activeRegion = regionNames.size() - 1;
+			else
+				activeRegion--;
+			break;
+
+		case OF_KEY_RIGHT: 
+			if(activeRegion == regionNames.size() - 1)
+				activeRegion = 0;
+			else
+				activeRegion++;
 			break;
 
 		// case OF_KEY_LEFT: 
@@ -500,14 +558,36 @@ void ofApp::keyPressed(int key){
 			bLearnBackground = true;
 			break;
 
-		// case 's': {
-		// 	XML.saveFile("settings.xml");
-		// 	cout << "Settings saved!";
-		// 	break;
-		// }
+		case 'S': {
+			XML.pushTag("PHASEINFORMATION");
+			XML.pushTag("PHASE", 1); // push into rivers phase, have to push in one at a time (annoying)
+			if (XML.getNumTags("REGIONS") == 0)
+				XML.addTag("REGIONS");
+			XML.pushTag("REGIONS");
+			XML.clear();
+			for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
+				int rNum = XML.addTag("REGION");
+				XML.setValue("REGION:NAME", iterator->first, rNum);
+				XML.pushTag("REGION", rNum);
+				for (int i = 0; i < iterator->second.size(); ++i)
+				{
+					int vNum = XML.addTag("PT");
+					XML.setValue("PT:X", iterator->second[i].x, vNum);
+					XML.setValue("PT:Y", iterator->second[i].y, vNum);
+				}
+				XML.popTag();
+			}
+			XML.saveFile("settings.xml");
+			cout << "Settings saved!";
+			break;
+		}
 	}
 
 }
 //--------------------------------------------------------------
 void ofApp::mousePressed(int mx, int my, int button){
+
+	string name = regionNames[activeRegion];
+	regions[name].addVertex(mx, my);
+
 }

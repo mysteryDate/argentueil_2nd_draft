@@ -1,3 +1,4 @@
+// argentueil_final
 #pragma once
 
 #ifdef __APPLE__
@@ -32,6 +33,7 @@ public:
 
 	void update();
 	void adjustPhase();
+	void updateRegions();
 	void updateBeavers();
 
 	void draw();
@@ -78,6 +80,9 @@ public:
 	vector< ofImage > 	gifFrames;
 	int 				numBeaverFrames;
 
+	// Labeling
+	map<string, ofPolyline> 	regions;
+
 	// For saving data
 	ofxXmlSettings 		XML;
 	// For determinind what's going on
@@ -98,5 +103,9 @@ public:
 	int x, y, w, h;
 	float r, z;
 	int minArea;
+
+	// Adding regions
+	int 			activeRegion;
+	vector<string> regionNames;
 
 };
