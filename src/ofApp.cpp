@@ -14,7 +14,7 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	firstVideo.play();
 	video = &firstVideo;
-	// video->setFrame(7000);
+	video->setFrame(7000);
 	speed = 1;
 
 	//kinect instructions
@@ -32,21 +32,7 @@ void ofApp::setup(){
 	nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", 1200, currentPhase+1);
 	XML.popTag();
 
-	string shaderProgram = "#version 120\n \
-	#extension GL_ARB_texture_rectangle : enable\n \
-	\
-	uniform sampler2DRect tex0;\
-	uniform sampler2DRect maskTex;\
-	\
-	void main (void){\
-	vec2 pos = gl_TexCoord[0].st;\
-	\
-	vec3 src = texture2DRect(tex0, pos).rgb;\
-	float mask = texture2DRect(maskTex, pos).r;\
-	\
-	gl_FragColor = vec4( src , mask);\
-	}";
-	shader.setupShaderFromSource(GL_FRAGMENT_SHADER, shaderProgram);
+	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shadersGL2/shader.frag");
 	shader.linkProgram();
 	fbo.allocate(video->getWidth(), video->getHeight());
 	maskFbo.allocate(video->getWidth(), video->getHeight());
@@ -251,13 +237,21 @@ void ofApp::drawFeedback() {
 	ofSetColor(0,255,0);
 	ContourFinder.draw();
 
-	ofSetColor(255,0,255);
 	for (int i = 0; i < ContourFinder.hands.size(); ++i)
 	{
+		ofSetColor(255,0,255);
+		ofFill();
 		ofCircle(ContourFinder.hands[i].end, 3);
 		ofCircle(ContourFinder.hands[i].tip, 3);
 		ofCircle(ContourFinder.hands[i].wrists[0], 3);
 		ofCircle(ContourFinder.hands[i].wrists[1], 3);
+		ofCircle(ContourFinder.hands[i].centroid, 3);
+		ofSetColor(255,255,255);
+		ofNoFill();
+		ofCircle(ContourFinder.hands[i].tip, ContourFinder.MAX_HAND_SIZE);
+		ofCircle(ContourFinder.hands[i].tip, ContourFinder.MIN_HAND_SIZE);
+		ofCircle(ContourFinder.hands[i].wrists[0], ContourFinder.MAX_WRIST_WIDTH);
+		ofCircle(ContourFinder.hands[i].wrists[0], ContourFinder.MIN_WRIST_WIDTH);
 	}
 
 	stringstream reportStream;
