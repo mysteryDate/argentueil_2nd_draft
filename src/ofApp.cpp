@@ -12,9 +12,9 @@ void ofApp::setup(){
 	firstVideo.setLoopState(OF_LOOP_NONE);
 	secondVideo.loadMovie("videos/Map_Argenteuil_P2_v11.mov");
 	secondVideo.setLoopState(OF_LOOP_NONE);
-	firstVideo.play();
+	// firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(1200);
+	// video->setFrame(1200);
 	speed = 1;
 
 	//kinect instructions
@@ -27,10 +27,8 @@ void ofApp::setup(){
 	// Hand display
 	font.loadFont("fonts/AltoPro-Normal.ttf", 12);
 
-	currentPhase = 0;
-	XML.pushTag("PHASEINFORMATION");
-	nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", 1200, currentPhase+1);
-	XML.popTag();
+	currentPhase = -1;
+	nextPhaseFrame = 1;
 
 	// Set up beavers for phase 4
 	XML.pushTag("BEAVERS");
@@ -44,6 +42,13 @@ void ofApp::setup(){
 		gifFrames.push_back(img);
 	}
 	XML.popTag();
+
+	//for water ripples
+	ofEnableAlphaBlending();
+	ripples.allocate(video->getWidth(), video->getHeight());
+	bounce.allocate(video->getWidth(), video->getHeight());
+	riverMask.loadImage("masks/river_mask_v3.png");
+	bRipple = false;
 
 	// Setting up shaders for phase 5
 	shader.setupShaderFromFile(GL_FRAGMENT_SHADER, "shadersGL2/shader.frag");
@@ -59,16 +64,17 @@ void ofApp::setup(){
 	fbo.end();
 	brushImg.loadImage("brush.png");
 
-	regionNames.push_back("Rivière des\nOutaouais");
-	regionNames.push_back("Rivière\ndu Nord");
-	regionNames.push_back("Rivière\nOuest");
-	regionNames.push_back("Rivière\nCalumet");
-	regionNames.push_back("Rivière\nRouge");
-	activeRegion = 0;
-	for (int i = 0; i < regionNames.size(); ++i)
-	{
-		regions.insert(pair<string, ofPolyline>(regionNames[i], ofPolyline()));
-	}
+	// Creating regions
+	// regionNames.push_back("Rivière des\nOutaouais");
+	// regionNames.push_back("Rivière\ndu Nord");
+	// regionNames.push_back("Rivière\nOuest");
+	// regionNames.push_back("Rivière\nCalumet");
+	// regionNames.push_back("Rivière\nRouge");
+	// activeRegion = 0;
+	// for (int i = 0; i < regionNames.size(); ++i)
+	// {
+	// 	regions.insert(pair<string, ofPolyline>(regionNames[i], ofPolyline()));
+	// }
 
 }	
 
@@ -99,6 +105,11 @@ void ofApp::update(){
 
 		ContourFinder.findContours(depthImage);
 		ContourFinder.update();
+	}
+	// Water ripples on 1,2,3,4,7,8
+	if(bRipple) {
+		bounce.setTexture(video->getTextureReference(), 1);
+		updateRipples();
 	}
 
 	// Beaver phase
@@ -138,9 +149,13 @@ void ofApp::draw(){
 
 	ofPushMatrix();
 		ofRotateZ(video_r);
-		video->draw(video_x, video_y, video_w, video_h);
-		if(currentPhase == 5)
-			fbo.draw(video_x, video_y, video_w, video_h);
+		if(bRipple)
+			bounce.draw(video_x, video_y, video_w, video_h);
+		else { 
+			video->draw(video_x, video_y, video_w, video_h);
+			if(currentPhase == 5)
+				fbo.draw(video_x, video_y, video_w, video_h);
+		}
 	ofPopMatrix();
 
 	drawHandMask(ofColor(0,0,0));
@@ -172,7 +187,6 @@ void ofApp::adjustPhase() {
 	XML.pushTag("PHASEINFORMATION");
 
 	int frame = video->getCurrentFrame();
-	cout << frame << endl;
 	if( frame >= nextPhaseFrame) { // Change phase
 		currentPhase++;
 		if(currentPhase >= 10)
@@ -192,6 +206,10 @@ void ofApp::adjustPhase() {
 			firstVideo.play();
 			video = &firstVideo;
 		}
+		if(XML.getValue("PHASE:RIPPLE", 0, currentPhase))
+			bRipple = true;
+		else
+			bRipple = false;
 		updateRegions();
 	}
 	XML.popTag();
@@ -224,6 +242,43 @@ void ofApp::updateRegions() {
     XML.popTag();
     XML.popTag();
 
+}
+
+void ofApp::updateRipples() {
+	// Water ripples
+	ripples.begin();
+		ofPushStyle();
+		ofPushMatrix();
+			ofFill();
+			// Put the data reference frame into the untransformed video reference
+			ofTranslate(kinect_x - video_x, kinect_y - video_y);
+			ofScale(kinect_z * video->getWidth() / video_w 
+				, kinect_z * video->getHeight() / video_h);
+			ofRotateZ(-video_r);
+
+			for (int i = 0; i < ContourFinder.hands.size(); ++i)
+			{
+				float color = ofMap(ContourFinder.hands[i].velocity.length(), 1, 8, 0, 255, true);
+				ofSetColor(color, color, color);
+				ofBeginShape();
+				for (int j = 0; j < ContourFinder.hands[i].line.size(); ++j)
+				{
+					ofVertex(ContourFinder.hands[i].line[j]);
+				}
+				ofEndShape();
+			}
+
+		ofPopMatrix();
+
+		ofSetColor(0,0,0);
+		ofFill();
+		if(currentPhase != 0)
+			riverMask.draw(0,0);
+		ofPopStyle();
+
+	ripples.end();
+	ripples.update();
+	bounce << ripples;
 }
 
 void ofApp::updateBeavers() {
@@ -337,12 +392,22 @@ void ofApp::drawHandText() {
 		tip.x = tip.x * kinect_z + kinect_x;
 		tip.y = tip.y * kinect_z + kinect_y;
 
+		for (auto iter=regions.begin(); iter!=regions.end(); ++iter)
+		{
+			if( iter->second.inside(center) ) {
+				palmText = iter->first;
+			}
+		}
+
 		ofPushMatrix();
 			ofTranslate(center.x, center.y);
 			// Proper rotation
 			float h = sqrt( pow(center.x - tip.x, 2) + pow(center.y - tip.y, 2) );
 			float angle =  ofRadToDeg( asin( (tip.y - center.y) / h ));
 			if(tip.x < center.x) angle *= -1;
+			if (side == 1) angle += 180;
+			if ( (side == 0 or side == 2 ) and tip.y < center.y ) 
+				angle += 180;
 			ofRotateZ(angle);
 			ofPoint textCenter = font.getStringBoundingBox(palmText, 0, 0).getCenter();
 			float width = font.getStringBoundingBox(palmText, 0, 0).getWidth();
@@ -398,19 +463,21 @@ void ofApp::drawFeedback() {
 	<< "frame: " << video->getCurrentFrame() << endl
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
-	<< "activeRegion: " << regionNames[activeRegion] << endl
+	<< "playing: " << ofToString(video->isPlaying()) << endl
+	<< "Paused: " << ofToString(video->isPaused()) << endl
+	// << "activeRegion: " << regionNames[activeRegion] << endl
 	// << "speed: " << speed << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
-	if  ( ContourFinder.size() == 1 ) {
-		ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
-		ofPoint min = rect.getMin();
-		ofPoint max = rect.getMax();
-		reportStream 
-		<< "minx: " << min.x << endl
-		<< "miny: " << min.y << endl
-		<< "maxx: " << max.x << endl
-		<< "maxy: " << max.y << endl;
-	}
+	// if  ( ContourFinder.size() == 1 ) {
+	// 	ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
+	// 	ofPoint min = rect.getMin();
+	// 	ofPoint max = rect.getMax();
+	// 	reportStream 
+	// 	<< "minx: " << min.x << endl
+	// 	<< "miny: " << min.y << endl
+	// 	<< "maxx: " << max.x << endl
+	// 	<< "maxy: " << max.y << endl;
+	// }
 
 	ofDrawBitmapString(reportStream.str(), 20, 600);
 	ofPopStyle();
@@ -456,19 +523,19 @@ void ofApp::keyPressed(int key){
 			secondVideo.setSpeed(speed);
 			break;
 
-		case OF_KEY_LEFT: 
-			if(activeRegion == 0)
-				activeRegion = regionNames.size() - 1;
-			else
-				activeRegion--;
-			break;
+		// case OF_KEY_LEFT: 
+		// 	if(activeRegion == 0)
+		// 		activeRegion = regionNames.size() - 1;
+		// 	else
+		// 		activeRegion--;
+		// 	break;
 
-		case OF_KEY_RIGHT: 
-			if(activeRegion == regionNames.size() - 1)
-				activeRegion = 0;
-			else
-				activeRegion++;
-			break;
+		// case OF_KEY_RIGHT: 
+		// 	if(activeRegion == regionNames.size() - 1)
+		// 		activeRegion = 0;
+		// 	else
+		// 		activeRegion++;
+		// 	break;
 
 		// case OF_KEY_LEFT: 
 		// 	x--;
@@ -547,47 +614,49 @@ void ofApp::keyPressed(int key){
 			bDisplayFeedback = !bDisplayFeedback;
 			break;
 
-		case ' ': 
+		case ' ': {
 			if(video->isPaused())
 				video->setPaused(false);
 			else
 				video->setPaused(true);
 			break;
+		}
 
 		case OF_KEY_RETURN:
 			bLearnBackground = true;
 			break;
 
-		case 'S': {
-			XML.pushTag("PHASEINFORMATION");
-			XML.pushTag("PHASE", 1); // push into rivers phase, have to push in one at a time (annoying)
-			if (XML.getNumTags("REGIONS") == 0)
-				XML.addTag("REGIONS");
-			XML.pushTag("REGIONS");
-			XML.clear();
-			for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
-				int rNum = XML.addTag("REGION");
-				XML.setValue("REGION:NAME", iterator->first, rNum);
-				XML.pushTag("REGION", rNum);
-				for (int i = 0; i < iterator->second.size(); ++i)
-				{
-					int vNum = XML.addTag("PT");
-					XML.setValue("PT:X", iterator->second[i].x, vNum);
-					XML.setValue("PT:Y", iterator->second[i].y, vNum);
-				}
-				XML.popTag();
-			}
-			XML.saveFile("settings.xml");
-			cout << "Settings saved!";
-			break;
-		}
+		// case 'S': {
+		// 	XML.pushTag("PHASEINFORMATION");
+		// 	XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
+		// 	if (XML.getNumTags("REGIONS") == 0)
+		// 		XML.addTag("REGIONS");
+		// 	XML.pushTag("REGIONS");
+		// 	XML.clear();
+		// 	for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
+		// 		int rNum = XML.addTag("REGION");
+		// 		XML.setValue("REGION:NAME", iterator->first, rNum);
+		// 		XML.pushTag("REGION", rNum);
+		// 		for (int i = 0; i < iterator->second.size(); ++i)
+		// 		{
+		// 			int vNum = XML.addTag("PT");
+		// 			XML.setValue("PT:X", iterator->second[i].x, vNum);
+		// 			XML.setValue("PT:Y", iterator->second[i].y, vNum);
+		// 		}
+		// 		XML.popTag();
+		// 	}
+		// 	XML.saveFile("settings.xml");
+		// 	cout << "Settings saved!";
+		// 	break;
+		// }
 	}
 
 }
 //--------------------------------------------------------------
 void ofApp::mousePressed(int mx, int my, int button){
 
-	string name = regionNames[activeRegion];
-	regions[name].addVertex(mx, my);
+	// string name = regionNames[activeRegion];
+	// regions[name].addVertex(mx, my);
+	return;
 
 }

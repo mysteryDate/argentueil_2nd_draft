@@ -38,12 +38,14 @@
         <VIDEO>1</VIDEO>
         <NAME>Intro</NAME>
         <STARTFRAME>0</STARTFRAME>
+        <RIPPLE>1</RIPPLE>
     </PHASE>
     <PHASE>
         <NUMBER>1</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>Rivers</NAME>
         <STARTFRAME>1293</STARTFRAME>
+        <RIPPLE>1</RIPPLE>
         <REGIONS>
             <REGION>
                 <NAME>Rivière&#x0A;Calumet</NAME>
@@ -387,48 +389,56 @@
         <VIDEO>1</VIDEO>
         <NAME>Natives</NAME>
         <STARTFRAME>2600</STARTFRAME>
+        <RIPPLE>1</RIPPLE>
     </PHASE>
     <PHASE>
         <NUMBER>3</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>History</NAME>
         <STARTFRAME>4272</STARTFRAME>
+        <RIPPLE>1</RIPPLE>
     </PHASE>
     <PHASE>
         <NUMBER>4</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>Beavers</NAME>
         <STARTFRAME>5600</STARTFRAME>
+        <RIPPLE>1</RIPPLE>
     </PHASE>
     <PHASE>
         <NUMBER>5</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>Trees</NAME>
         <STARTFRAME>7200</STARTFRAME>
+        <RIPPLE>0</RIPPLE>
     </PHASE>
     <PHASE>
         <NUMBER>6</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Municipalities</NAME>
         <STARTFRAME>9000</STARTFRAME>
+        <RIPPLE>0</RIPPLE>
     </PHASE>
     <PHASE>
         <NUMBER>7</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Churches</NAME>
         <STARTFRAME>3500</STARTFRAME>
+        <RIPPLE>1</RIPPLE>
     </PHASE>
     <PHASE>
         <NUMBER>8</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Stations</NAME>
         <STARTFRAME>4300</STARTFRAME>
+        <RIPPLE>1</RIPPLE>
     </PHASE>
     <PHASE>
         <NUMBER>9</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Photos</NAME>
         <STARTFRAME>5440</STARTFRAME>
+        <RIPPLE>0</RIPPLE>
     </PHASE>
 </PHASEINFORMATION>
 <BEAVERS>

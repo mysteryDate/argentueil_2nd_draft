@@ -23,6 +23,7 @@
 #include "utility.h"
 #include "ArmContourFinder.h"
 #include "Critter.h"
+// Standards
 #include <cmath>
 
 class ofApp : public ofBaseApp{
@@ -34,6 +35,7 @@ public:
 	void update();
 	void adjustPhase();
 	void updateRegions();
+	void updateRipples();
 	void updateBeavers();
 
 	void draw();
@@ -75,6 +77,12 @@ public:
 	ofFbo 				maskFbo;
 	ofImage 			brushImg;
 
+	// Ripples effect
+	ofxRipples	ripples;
+	ofxBounce 	bounce;
+	ofImage 	riverMask;
+	bool 		bRipple;
+
 	// Beaver game
 	vector< Critter > 	Beavers;
 	vector< ofImage > 	gifFrames;
@@ -85,7 +93,7 @@ public:
 
 	// For saving data
 	ofxXmlSettings 		XML;
-	// For determinind what's going on
+	// For determining what's going on
 	int currentPhase;
 	int nextPhaseFrame;
 
