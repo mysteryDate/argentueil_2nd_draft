@@ -148,10 +148,6 @@ ofPolyline ArmContourFinder::getHand(int n) {
 
 bool ArmContourFinder::findHand(int n) {
 
-	// ends[n].clear();
-	// tips[n] = ofPoint(0,0,0);
-	// wrists[n].clear();
-
 	unsigned int l = getLabel(n);
 	//First, find ends
 	ends[l] = findEnd(n);
@@ -165,6 +161,8 @@ bool ArmContourFinder::findHand(int n) {
 	float d2 = ofDistSquared(tips[l].x, tips[l].y, ends[l].x, ends[l].y);
 	if( d1 < MIN_HAND_SIZE * MIN_HAND_SIZE and d2 < MIN_HAND_SIZE * MIN_HAND_SIZE )
 		return false; // Too small!
+	// if( d1 > MAX_HAND_SIZE * MAX_HAND_SIZE and d2 > MAX_HAND_SIZE * MAX_HAND_SIZE )
+	// 	return false; // Too big!
 
 	//Now find the wrists
 	wrists[l] = findWrists(n);

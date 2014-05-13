@@ -87,7 +87,6 @@ void ofApp::update(){
 		}
 
 		ContourFinder.findContours(depthImage);
-		cout << "Csize" << ContourFinder.size() << endl;
 		ContourFinder.update();
 	}
 
