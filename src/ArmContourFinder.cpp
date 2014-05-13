@@ -25,15 +25,16 @@ void ArmContourFinder::update() {
 	for (int i = 0; i < polylines.size(); ++i)
 	{
 		handFound[getLabel(i)] = findHand(i);
-		updateHands();
 	}
+	updateHands();
 }
 
 void ArmContourFinder::updateHands() {
 
 	vector < Hand > newHands;
+	newHands.clear();
 
-	for (int i = 0; i < polylines.size(); ++i)
+	for (int i = 0; i < size(); ++i)
 	{
 		unsigned int l = getLabel(i);
 		if(handFound[l]) {
@@ -89,7 +90,6 @@ void ArmContourFinder::updateHands() {
 			hands.push_back(newHands[i]);
 		}
 	}
-
 	sort(hands.begin(), hands.end());
 
 	//Finally, the magic

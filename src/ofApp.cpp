@@ -87,6 +87,7 @@ void ofApp::update(){
 		}
 
 		ContourFinder.findContours(depthImage);
+		cout << "Csize" << ContourFinder.size() << endl;
 		ContourFinder.update();
 	}
 
@@ -123,7 +124,7 @@ void ofApp::draw(){
 
 	drawHandMask(ofColor(0,0,0));
 
-	if(currentPhase == 1 || currentPhase == 2 || currentPhase == 6 or currentPhase == 7 or currentPhase == 8)
+	// if(currentPhase == 1 || currentPhase == 2 || currentPhase == 6 or currentPhase == 7 or currentPhase == 8)
 		drawHandText();
 
 	if(bDisplayFeedback)
@@ -267,7 +268,7 @@ void ofApp::drawFeedback() {
 	<< "frame: " << video->getCurrentFrame() << endl
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
-	<< "speed: " << speed << endl
+	// << "speed: " << speed << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 	if  ( ContourFinder.size() == 1 ) {
 		ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
