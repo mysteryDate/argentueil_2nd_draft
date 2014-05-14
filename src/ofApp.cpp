@@ -102,17 +102,21 @@ void ofApp::update(){
 				pix[i] = 255;
 		}
 
-		ContourFinder.findContours(depthImage);
+		input = ofxCv::toCv(depthImage);
+		cv::Rect crop_roi = cv::Rect(crop_left, crop_top, 
+			kinect.width - crop_left - crop_right,
+			kinect.height - crop_top - crop_bottom);
+		croppedInput = input(crop_roi).clone();
+
+		ContourFinder.findContours(croppedInput);
 		if(bHandText)
 			ContourFinder.update();
 		else
 			ContourFinder.hands.clear();
 	}
 	// Water ripples on 1,2,3,4,7,8
-	if(bRipple) {
-		bounce.setTexture(video->getTextureReference(), 1);
+	if(bRipple) 
 		updateRipples();
-	}
 
 	// Beaver phase
 	if(currentPhase == 4) {
@@ -165,18 +169,7 @@ void ofApp::draw(){
 	if(bHandText)
 		drawHandText();
 
-	for (int i = 0; i < Beavers.size(); ++i)
-	{		
-		Critter CB = Beavers[i];
-		if(!CB.hidden) {
-			ofPushMatrix();
-	        ofTranslate(CB.p.x, CB.p.y); // Translate to the center of the beaver
-			ofRotateZ(CB.d);
-				gifFrames[CB.currentFrame].setAnchorPercent(0.5,0.5); // So that we draw from the middle
-				gifFrames[CB.currentFrame].draw(0,0);
-			ofPopMatrix();
-		}
-	}
+	drawBeavers();
 
 	if(bDisplayFeedback)
 		drawFeedback();
@@ -258,41 +251,21 @@ void ofApp::updateRegions() {
 }
 
 void ofApp::updateRipples() {
+
+	bounce.setTexture(video->getTextureReference(), 1);
+	int frameDiff = nextPhaseFrame - video->getCurrentFrame();
+	ripples.damping = ofMap(frameDiff, 100, 0, 0.995, 0, true);
 	// Water ripples
 	ripples.begin();
 		ofPushStyle();
 		ofPushMatrix();
 			ofFill();
 			// Put the data reference frame into the untransformed video reference
-			ofTranslate(kinect_x - video_x, kinect_y - video_y);
-			ofScale(kinect_z * video->getWidth() / video_w 
-				, kinect_z * video->getHeight() / video_h);
+			ofTranslate(-video_x, -video_y);
+			ofScale(video->getWidth() / video_w,  video->getHeight() / video_h);
 			ofRotateZ(-video_r);
-
-			for (int i = 0; i < ContourFinder.hands.size(); ++i)
-			{
-				float color = ofMap(ContourFinder.hands[i].velocity.length(), 1, 8, 0, 255, true);
-				ofSetColor(color, color, color);
-				ofBeginShape();
-				for (int j = 0; j < ContourFinder.hands[i].line.size(); ++j)
-				{
-					ofVertex(ContourFinder.hands[i].line[j]);
-				}
-				ofEndShape();
-			}
-
-			for (int i = 0; i < Beavers.size(); ++i)
-			{		
-				Critter CB = Beavers[i];
-				if(!CB.hidden) {
-					ofPushMatrix();
-			        ofTranslate(CB.p.x, CB.p.y); // Translate to the center of the beaver
-					ofRotateZ(CB.d);
-						gifFrames[CB.currentFrame].setAnchorPercent(0.5,0.5); // So that we draw from the middle
-						gifFrames[CB.currentFrame].draw(0,0);
-					ofPopMatrix();
-				}
-			}
+			drawHandMask(ofColor(255,255,255), !bHandText);
+			drawBeavers();
 
 		ofPopMatrix();
 
@@ -311,6 +284,7 @@ void ofApp::updateBeavers() {
 
 	float Iw = gifFrames[0].getWidth();
 	float Ih = gifFrames[0].getHeight();
+	float beaverScaleUp = 1.2; // makes them easier to catch
 
 	for (int i = 0; i < Beavers.size(); ++i)
 	{
@@ -334,8 +308,8 @@ void ofApp::updateBeavers() {
 		{
 			int xd = (j & 1)*2 - 1;
 			int yd = (j & 2) - 1;
-			float x = B->p.x + cos(B->d*PI/180)*Iw*xd/2 + sin(B->d*PI/180)*Ih*yd/2;
-			float y = B->p.y - sin(B->d*PI/180)*Iw*xd/2 + cos(B->d*PI/180)*Ih*yd/2;
+			float x = B->p.x + beaverScaleUp*cos(B->d*PI/180)*Iw*xd/2 + beaverScaleUp*sin(B->d*PI/180)*Ih*yd/2;
+			float y = B->p.y - beaverScaleUp*sin(B->d*PI/180)*Iw*xd/2 + beaverScaleUp*cos(B->d*PI/180)*Ih*yd/2;
 			corners.push_back(ofPoint(x,y));
 		}
 		// Beaver has left the building
@@ -343,9 +317,9 @@ void ofApp::updateBeavers() {
 				Beavers.erase(Beavers.begin() + i);
 		// Collision
 		B->hidden = false; 
-		for (int j = 0; j < ContourFinder.hands.size(); ++j)
+		for (int j = 0; j < ContourFinder.size(); ++j)
 		{
-			ofPolyline line = utility::transform(ContourFinder.hands[j].line, kinect_x, kinect_y, kinect_z);
+			ofPolyline line = utility::transform(ContourFinder.getPolyline(j), kinect_x, kinect_y, kinect_z);
 			if( line.inside(B->p.x, B->p.y) )  {
 				B->v = 0;
 				B->hidden = true;
@@ -361,6 +335,23 @@ void ofApp::updateBeavers() {
 		}
 
 	}
+}
+
+void ofApp::drawBeavers() {
+
+	for (int i = 0; i < Beavers.size(); ++i)
+	{		
+		Critter CB = Beavers[i];
+		if(!CB.hidden) {
+			ofPushMatrix();
+	        ofTranslate(CB.p.x, CB.p.y); // Translate to the center of the beaver
+			ofRotateZ(CB.d);
+				gifFrames[CB.currentFrame].setAnchorPercent(0.5,0.5); // So that we draw from the middle
+				gifFrames[CB.currentFrame].draw(0,0);
+			ofPopMatrix();
+		}
+	}
+
 }
 
 void ofApp::drawHandMask(ofColor color, bool bDrawArms) {
@@ -452,9 +443,11 @@ void ofApp::drawHandText() {
 void ofApp::drawFeedback() {
 
 	ofPushStyle();
-	// depthImage.draw(0,0);
+	depthImage.draw(0,0);
 	ofSetColor(0,255,0);
-	ContourFinder.draw();
+	ofTranslate(crop_left, crop_right);
+		ContourFinder.draw();
+	ofTranslate(-crop_left, -crop_right);
 
 	for (int i = 0; i < ContourFinder.hands.size(); ++i)
 	{
@@ -522,19 +515,29 @@ void ofApp::loadSettings() {
 		video_r = XML.getValue("VIDEO:R", 0);
 
 		XML.pushTag("KINECT");
+				XML.pushTag("CROP");
+					crop_left = XML.getValue("LEFT", 0);
+					crop_right = XML.getValue("RIGHT", 0);
+					crop_top = XML.getValue("TOP", 0);
+					crop_bottom = XML.getValue("BOTTOM", 0);
+				XML.popTag();
 			if(REGISTRATION) 
 				XML.pushTag("REGISTRATION");
 			else
 				XML.pushTag("NOREGISTRATION");
-					kinect_x = XML.getValue("X", 0);
-					kinect_y = XML.getValue("Y", 0);
 					kinect_z = XML.getValue("Z", 2.77);
+					kinect_x = XML.getValue("X", 0) + crop_left * kinect_z;
+					kinect_y = XML.getValue("Y", 0) + crop_top * kinect_z;
 				XML.popTag();
 		XML.popTag();
 	XML.popTag();
 
+	// ContourFinder
 	ContourFinder.setMinArea(XML.getValue("CV:MINAREA", 1000));
-
+	ContourFinder.bounds[0] = 1;
+	ContourFinder.bounds[1] = 1;
+	ContourFinder.bounds[2] = kinect.width - crop_left - crop_right - 1;
+	ContourFinder.bounds[3] = kinect.height - crop_top - crop_bottom - 1;
 
 	farThreshold = XML.getValue("KINECT:FARTHRESHOLD", 2);
 	nearThreshold = XML.getValue("KINECT:NEARTHRESHOLD", farThreshold + 40);
@@ -546,17 +549,17 @@ void ofApp::keyPressed(int key){
 
 	switch(key) {
 
-		// case OF_KEY_DOWN: 
-		// 	speed *= 0.9;
-		// 	firstVideo.setSpeed(speed);
-		// 	secondVideo.setSpeed(speed);
-		// 	break;
+		case OF_KEY_DOWN: 
+			speed *= 0.9;
+			firstVideo.setSpeed(speed);
+			secondVideo.setSpeed(speed);
+			break;
 
-		// case OF_KEY_UP: 
-		// 	speed *= 1.1;
-		// 	firstVideo.setSpeed(speed);
-		// 	secondVideo.setSpeed(speed);
-		// 	break;
+		case OF_KEY_UP: 
+			speed *= 1.1;
+			firstVideo.setSpeed(speed);
+			secondVideo.setSpeed(speed);
+			break;
 
 		// case OF_KEY_LEFT: 
 		// 	if(activeRegion == 0)
@@ -572,21 +575,21 @@ void ofApp::keyPressed(int key){
 		// 		activeRegion++;
 		// 	break;
 
-		case OF_KEY_LEFT: 
-			kinect_x--;
-			break;
+		// case OF_KEY_LEFT: 
+		// 	kinect_x--;
+		// 	break;
 
-		case OF_KEY_RIGHT: 
-			kinect_x++;
-			break;
+		// case OF_KEY_RIGHT: 
+		// 	kinect_x++;
+		// 	break;
 
-		case OF_KEY_UP: 
-			kinect_y--;
-			break;
+		// case OF_KEY_UP: 
+		// 	kinect_y--;
+		// 	break;
 
-		case OF_KEY_DOWN: 
-			kinect_y++;
-			break;
+		// case OF_KEY_DOWN: 
+		// 	kinect_y++;
+		// 	break;
 
 		// case 'W': 
 		// 	w++;
@@ -661,52 +664,52 @@ void ofApp::keyPressed(int key){
 			bLearnBackground = true;
 			break;
 
-		case 'S': {
-			// For saving regions
-			// XML.pushTag("PHASEINFORMATION");
-			// XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
-			// if (XML.getNumTags("REGIONS") == 0)
-			// 	XML.addTag("REGIONS");
-			// XML.pushTag("REGIONS");
-			// XML.clear();
-			// for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
-			// 	int rNum = XML.addTag("REGION");
-			// 	XML.setValue("REGION:NAME", iterator->first, rNum);
-			// 	XML.pushTag("REGION", rNum);
-			// 	for (int i = 0; i < iterator->second.size(); ++i)
-			// 	{
-			// 		int vNum = XML.addTag("PT");
-			// 		XML.setValue("PT:X", iterator->second[i].x, vNum);
-			// 		XML.setValue("PT:Y", iterator->second[i].y, vNum);
-			// 	}
-			// 	XML.popTag();
-			// }
-			// Saving calibration
-			XML.pushTag(ofToString(PLATFORM));
-				XML.pushTag("KINECT");
-				if(REGISTRATION)
-					XML.pushTag("REGISTRATION");
-				else
-					XML.pushTag("NOREGISTRATION");
+		// case 'S': {
+		// 	// For saving regions
+		// 	// XML.pushTag("PHASEINFORMATION");
+		// 	// XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
+		// 	// if (XML.getNumTags("REGIONS") == 0)
+		// 	// 	XML.addTag("REGIONS");
+		// 	// XML.pushTag("REGIONS");
+		// 	// XML.clear();
+		// 	// for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
+		// 	// 	int rNum = XML.addTag("REGION");
+		// 	// 	XML.setValue("REGION:NAME", iterator->first, rNum);
+		// 	// 	XML.pushTag("REGION", rNum);
+		// 	// 	for (int i = 0; i < iterator->second.size(); ++i)
+		// 	// 	{
+		// 	// 		int vNum = XML.addTag("PT");
+		// 	// 		XML.setValue("PT:X", iterator->second[i].x, vNum);
+		// 	// 		XML.setValue("PT:Y", iterator->second[i].y, vNum);
+		// 	// 	}
+		// 	// 	XML.popTag();
+		// 	// }
+		// 	// Saving calibration
+		// 	XML.pushTag(ofToString(PLATFORM));
+		// 		XML.pushTag("KINECT");
+		// 		if(REGISTRATION)
+		// 			XML.pushTag("REGISTRATION");
+		// 		else
+		// 			XML.pushTag("NOREGISTRATION");
 
-						XML.setValue("X", kinect_x);
-						XML.setValue("Y", kinect_y);
-						XML.setValue("Z", kinect_z);
-					XML.popTag();
-				XML.popTag();
-			XML.popTag();
-			XML.saveFile("settings.xml");
-			cout << "Settings saved!";
-			break;
-		}
+		// 				XML.setValue("X", kinect_x);
+		// 				XML.setValue("Y", kinect_y);
+		// 				XML.setValue("Z", kinect_z);
+		// 			XML.popTag();
+		// 		XML.popTag();
+		// 	XML.popTag();
+		// 	XML.saveFile("settings.xml");
+		// 	cout << "Settings saved!";
+		// 	break;
+		// }
 	}
 
 }
 //--------------------------------------------------------------
 void ofApp::mousePressed(int mx, int my, int button){
 
-	string name = regionNames[activeRegion];
-	regions[name].addVertex(mx, my);
+	// string name = regionNames[activeRegion];
+	// regions[name].addVertex(mx, my);
 	return;
 
 }

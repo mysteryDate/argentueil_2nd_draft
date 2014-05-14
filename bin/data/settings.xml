@@ -20,6 +20,12 @@
             <Y>-120.000000000</Y>
             <Z>2.649999857</Z>
         </NOREGISTRATION>
+        <CROP>
+            <LEFT>28</LEFT>
+            <RIGHT>10</RIGHT>
+            <TOP>14</TOP>
+            <BOTTOM>27</BOTTOM>
+        </CROP>
     </KINECT>
 </MAC>
 <CV>
@@ -535,7 +541,7 @@
         <VIDEO>1</VIDEO>
         <NAME>History</NAME>
         <STARTFRAME>4272</STARTFRAME>
-        <RIPPLE>1</RIPPLE>
+        <RIPPLE>0</RIPPLE>
         <HANDTEXT>0</HANDTEXT>
         <FARTHRESHOLD>2</FARTHRESHOLD>
         <NEARTHRESHOLD>42</NEARTHRESHOLD>
@@ -845,7 +851,7 @@
         <VIDEO>2</VIDEO>
         <NAME>Churches</NAME>
         <STARTFRAME>3400</STARTFRAME>
-        <RIPPLE>1</RIPPLE>
+        <RIPPLE>0</RIPPLE>
         <HANDTEXT>1</HANDTEXT>
         <FARTHRESHOLD>2</FARTHRESHOLD>
         <NEARTHRESHOLD>42</NEARTHRESHOLD>
@@ -1754,7 +1760,7 @@
         <VIDEO>2</VIDEO>
         <NAME>Stations</NAME>
         <STARTFRAME>4300</STARTFRAME>
-        <RIPPLE>1</RIPPLE>
+        <RIPPLE>0</RIPPLE>
         <HANDTEXT>1</HANDTEXT>
         <FARTHRESHOLD>2</FARTHRESHOLD>
         <NEARTHRESHOLD>42</NEARTHRESHOLD>

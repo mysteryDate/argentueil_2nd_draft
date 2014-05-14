@@ -41,9 +41,10 @@ public:
 	void updateBeavers();
 
 	void draw();
-	void drawFeedback();
 	void drawHandMask(ofColor color = ofColor(0,0,0), bool bDrawArms = true);
+	void drawBeavers();
 	void drawHandText();
+	void drawFeedback();
 
 	void keyPressed(int key);
 	void mousePressed(int x, int y, int button);
@@ -106,6 +107,7 @@ public:
 	// Calibration settings
 	float video_x, video_y, video_w, video_h, video_r;
 	float kinect_x, kinect_y, kinect_z;
+	int crop_left, crop_top, crop_right, crop_bottom;
 	// Feedback
 	bool bDisplayFeedback;
 
