@@ -26,6 +26,8 @@
 // Standards
 #include <cmath>
 
+#define REGISTRATION false
+
 class ofApp : public ofBaseApp{
 
 public:
@@ -99,6 +101,7 @@ public:
 
 	// Font display
 	ofxTrueTypeFontUC 	font;
+	bool 				bHandText;
 
 	// Calibration settings
 	float video_x, video_y, video_w, video_h, video_r;

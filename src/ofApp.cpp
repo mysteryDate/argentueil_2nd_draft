@@ -15,22 +15,22 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(1300);
-	currentPhase = 1;
+//	video->setFrame(1300);
+	currentPhase = -1;
 	// nextPhaseFrame = 5600 ;
 	nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
 	//kinect instructions
 	kinect.init();
-	kinect.setRegistration(true);
+	kinect.setRegistration(REGISTRATION);
 	kinect.open();
 	depthImage.allocate(kinect.width, kinect.height);
 	depthBackground.allocate(kinect.width, kinect.height);
 
 	// Hand display
 	font.loadFont("fonts/AltoPro-Normal.ttf", 12);
-
+	bHandText = false;
 
 	// Set up beavers for phase 4
 	XML.pushTag("BEAVERS");
@@ -67,13 +67,13 @@ void ofApp::setup(){
 	// brushImg.loadImage("brush.png");
 
 	// Creating church regions
-	activeRegion = 0;
-	ofBuffer buffer = ofBufferFromFile("river_names.txt");
-	while(!buffer.isLastLine() ) {
-		string name = buffer.getNextLine().c_str();
-		regionNames.push_back( name );
-		regions.insert(pair<string, ofPolyline>(name, ofPolyline()));
-	}
+	// activeRegion = 0;
+	// ofBuffer buffer = ofBufferFromFile("river_names.txt");
+	// while(!buffer.isLastLine() ) {
+	// 	string name = buffer.getNextLine().c_str();
+	// 	regionNames.push_back( name );
+	// 	regions.insert(pair<string, ofPolyline>(name, ofPolyline()));
+	// }
 
 }	
 
@@ -103,7 +103,10 @@ void ofApp::update(){
 		}
 
 		ContourFinder.findContours(depthImage);
-		ContourFinder.update();
+		if(bHandText)
+			ContourFinder.update();
+		else
+			ContourFinder.hands.clear();
 	}
 	// Water ripples on 1,2,3,4,7,8
 	if(bRipple) {
@@ -128,7 +131,7 @@ void ofApp::update(){
 			ofTranslate(-video_x, -video_y);
 			ofScale(video->getWidth() / video_w, video->getHeight() / video_h);
 			ofRotateZ(-video_r);
-				drawHandMask(ofColor(255,255,255,100), false);
+				drawHandMask(ofColor(255,255,255,127), true);
 			ofPopMatrix();
 		maskFbo.end();
 
@@ -159,7 +162,7 @@ void ofApp::draw(){
 
 	drawHandMask(ofColor(0,0,0));
 
-	if(currentPhase == 1 || currentPhase == 2 || currentPhase == 6 or currentPhase == 7 or currentPhase == 8)
+	if(bHandText)
 		drawHandText();
 
 	for (int i = 0; i < Beavers.size(); ++i)
@@ -212,6 +215,12 @@ void ofApp::adjustPhase() {
 			bRipple = true;
 		else
 			bRipple = false;
+		farThreshold = XML.getValue("PHASE:FARTHRESHOLD", 2, currentPhase);
+		nearThreshold = XML.getValue("PHASE:NEARTHRESHOLD", 42, currentPhase);
+		if(XML.getValue("PHASE:HANDTEXT", 0, currentPhase) == 1)
+			bHandText = true;
+		else
+			bHandText = false;
 		updateRegions();
 	}
 	XML.popTag();
@@ -270,6 +279,19 @@ void ofApp::updateRipples() {
 					ofVertex(ContourFinder.hands[i].line[j]);
 				}
 				ofEndShape();
+			}
+
+			for (int i = 0; i < Beavers.size(); ++i)
+			{		
+				Critter CB = Beavers[i];
+				if(!CB.hidden) {
+					ofPushMatrix();
+			        ofTranslate(CB.p.x, CB.p.y); // Translate to the center of the beaver
+					ofRotateZ(CB.d);
+						gifFrames[CB.currentFrame].setAnchorPercent(0.5,0.5); // So that we draw from the middle
+						gifFrames[CB.currentFrame].draw(0,0);
+					ofPopMatrix();
+				}
 			}
 
 		ofPopMatrix();
@@ -351,17 +373,17 @@ void ofApp::drawHandMask(ofColor color, bool bDrawArms) {
 	ofScale(kinect_z, kinect_z);
 
 	if(bDrawArms) {
-	for (int i = 0; i < ContourFinder.size(); ++i)
-	{
-		ofPolyline blob = ContourFinder.getPolyline(i);
-		blob = blob.getSmoothed(4);
+		for (int i = 0; i < ContourFinder.size(); ++i)
+		{
+			ofPolyline blob = ContourFinder.getPolyline(i);
+			blob = blob.getSmoothed(4);
 
-		ofBeginShape();
-			for (int j = 0; j < blob.size(); ++j) {
-				ofVertex(blob[j]);
-			}
-		ofEndShape();
-	}
+			ofBeginShape();
+				for (int j = 0; j < blob.size(); ++j) {
+					ofVertex(blob[j]);
+				}
+			ofEndShape();
+		}
 	}
 	else{
 		for (int i = 0; i < ContourFinder.hands.size(); ++i)
@@ -386,7 +408,7 @@ void ofApp::drawHandText() {
 
 	for (int i = 0; i < ContourFinder.hands.size(); ++i)
 	{
-		string palmText = "hand";
+		string palmText;
 		ofPoint center 	= ContourFinder.hands[i].centroid;
 		ofPoint tip 	= ContourFinder.hands[i].tip;
 		int side 		= ContourFinder.hands[i].side;
@@ -459,7 +481,7 @@ void ofApp::drawFeedback() {
 		i++;
 	}
 	ofSetColor(255,255,255);
-	regions[regionNames[activeRegion]].draw();
+	// regions[regionNames[activeRegion]].draw();
 	ofPopStyle();
 
 	stringstream reportStream;
@@ -471,9 +493,9 @@ void ofApp::drawFeedback() {
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
 	<< "playing: " << ofToString(video->isPlaying()) << endl
 	<< "Paused: " << ofToString(video->isPaused()) << endl
-	// << "speed: " << speed << endl
+	<< "speed: " << speed << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
-	font.drawString(regionNames[activeRegion], 20, 800);
+	// font.drawString(regionNames[activeRegion], 20, 800);
 	// if  ( ContourFinder.size() == 1 ) {
 	// 	ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
 	// 	ofPoint min = rect.getMin();
@@ -499,9 +521,16 @@ void ofApp::loadSettings() {
 		video_h = XML.getValue("VIDEO:H", firstVideo.getHeight());
 		video_r = XML.getValue("VIDEO:R", 0);
 
-		kinect_x = XML.getValue("KINECT:X", 0);
-		kinect_y = XML.getValue("KINECT:Y", 0);
-		kinect_z = XML.getValue("KINECT:Z", 2.77);
+		XML.pushTag("KINECT");
+			if(REGISTRATION) 
+				XML.pushTag("REGISTRATION");
+			else
+				XML.pushTag("NOREGISTRATION");
+					kinect_x = XML.getValue("X", 0);
+					kinect_y = XML.getValue("Y", 0);
+					kinect_z = XML.getValue("Z", 2.77);
+				XML.popTag();
+		XML.popTag();
 	XML.popTag();
 
 	ContourFinder.setMinArea(XML.getValue("CV:MINAREA", 1000));
@@ -517,47 +546,47 @@ void ofApp::keyPressed(int key){
 
 	switch(key) {
 
-		case OF_KEY_DOWN: 
-			speed *= 0.9;
-			firstVideo.setSpeed(speed);
-			secondVideo.setSpeed(speed);
-			break;
-
-		case OF_KEY_UP: 
-			speed *= 1.1;
-			firstVideo.setSpeed(speed);
-			secondVideo.setSpeed(speed);
-			break;
-
-		case OF_KEY_LEFT: 
-			if(activeRegion == 0)
-				activeRegion = regionNames.size() - 1;
-			else
-				activeRegion--;
-			break;
-
-		case OF_KEY_RIGHT: 
-			if(activeRegion == regionNames.size() - 1)
-				activeRegion = 0;
-			else
-				activeRegion++;
-			break;
-
-		// case OF_KEY_LEFT: 
-		// 	x--;
-		// 	break;
-
-		// case OF_KEY_RIGHT: 
-		// 	x++;
+		// case OF_KEY_DOWN: 
+		// 	speed *= 0.9;
+		// 	firstVideo.setSpeed(speed);
+		// 	secondVideo.setSpeed(speed);
 		// 	break;
 
 		// case OF_KEY_UP: 
-		// 	y--;
+		// 	speed *= 1.1;
+		// 	firstVideo.setSpeed(speed);
+		// 	secondVideo.setSpeed(speed);
 		// 	break;
 
-		// case OF_KEY_DOWN: 
-		// 	y++;
+		// case OF_KEY_LEFT: 
+		// 	if(activeRegion == 0)
+		// 		activeRegion = regionNames.size() - 1;
+		// 	else
+		// 		activeRegion--;
 		// 	break;
+
+		// case OF_KEY_RIGHT: 
+		// 	if(activeRegion == regionNames.size() - 1)
+		// 		activeRegion = 0;
+		// 	else
+		// 		activeRegion++;
+		// 	break;
+
+		case OF_KEY_LEFT: 
+			kinect_x--;
+			break;
+
+		case OF_KEY_RIGHT: 
+			kinect_x++;
+			break;
+
+		case OF_KEY_UP: 
+			kinect_y--;
+			break;
+
+		case OF_KEY_DOWN: 
+			kinect_y++;
+			break;
 
 		// case 'W': 
 		// 	w++;
@@ -585,13 +614,13 @@ void ofApp::keyPressed(int key){
 		// 	r-= 0.1;
 		// 	break;
 
-		// case 'Z': 
-		// 	z += 0.01;
-		// 	break;
+		case 'Z': 
+			kinect_z += 0.01;
+			break;
 
-		// case 'z': 
-		// 	z -= 0.01;
-		// 	break;
+		case 'z': 
+			kinect_z -= 0.01;
+			break;
 
 		case '>':
 		case '.':
@@ -633,24 +662,39 @@ void ofApp::keyPressed(int key){
 			break;
 
 		case 'S': {
-			XML.pushTag("PHASEINFORMATION");
-			XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
-			if (XML.getNumTags("REGIONS") == 0)
-				XML.addTag("REGIONS");
-			XML.pushTag("REGIONS");
-			XML.clear();
-			for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
-				int rNum = XML.addTag("REGION");
-				XML.setValue("REGION:NAME", iterator->first, rNum);
-				XML.pushTag("REGION", rNum);
-				for (int i = 0; i < iterator->second.size(); ++i)
-				{
-					int vNum = XML.addTag("PT");
-					XML.setValue("PT:X", iterator->second[i].x, vNum);
-					XML.setValue("PT:Y", iterator->second[i].y, vNum);
-				}
+			// For saving regions
+			// XML.pushTag("PHASEINFORMATION");
+			// XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
+			// if (XML.getNumTags("REGIONS") == 0)
+			// 	XML.addTag("REGIONS");
+			// XML.pushTag("REGIONS");
+			// XML.clear();
+			// for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
+			// 	int rNum = XML.addTag("REGION");
+			// 	XML.setValue("REGION:NAME", iterator->first, rNum);
+			// 	XML.pushTag("REGION", rNum);
+			// 	for (int i = 0; i < iterator->second.size(); ++i)
+			// 	{
+			// 		int vNum = XML.addTag("PT");
+			// 		XML.setValue("PT:X", iterator->second[i].x, vNum);
+			// 		XML.setValue("PT:Y", iterator->second[i].y, vNum);
+			// 	}
+			// 	XML.popTag();
+			// }
+			// Saving calibration
+			XML.pushTag(ofToString(PLATFORM));
+				XML.pushTag("KINECT");
+				if(REGISTRATION)
+					XML.pushTag("REGISTRATION");
+				else
+					XML.pushTag("NOREGISTRATION");
+
+						XML.setValue("X", kinect_x);
+						XML.setValue("Y", kinect_y);
+						XML.setValue("Z", kinect_z);
+					XML.popTag();
 				XML.popTag();
-			}
+			XML.popTag();
 			XML.saveFile("settings.xml");
 			cout << "Settings saved!";
 			break;

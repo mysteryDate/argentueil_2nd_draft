@@ -7,12 +7,19 @@
         <H>1060.312500000</H>
     </VIDEO>
     <KINECT>
-        <X>-93</X>
-        <Y>-226</Y>
-        <Z>2.769999981</Z>
-        <IMGX>-38</IMGX>
-        <IMGY>-87</IMGY>
-        <IMGZ>2.779999971</IMGZ>
+        <REGISTRATION>
+            <X>-93</X>
+            <Y>-226</Y>
+            <Z>2.769999981</Z>
+            <IMGX>-38</IMGX>
+            <IMGY>-87</IMGY>
+            <IMGZ>2.779999971</IMGZ>
+        </REGISTRATION>
+        <NOREGISTRATION>
+            <X>-49.000000000</X>
+            <Y>-120.000000000</Y>
+            <Z>2.649999857</Z>
+        </NOREGISTRATION>
     </KINECT>
 </MAC>
 <CV>
@@ -39,6 +46,9 @@
         <NAME>Intro</NAME>
         <STARTFRAME>0</STARTFRAME>
         <RIPPLE>1</RIPPLE>
+        <HANDTEXT>0</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
     </PHASE>
     <PHASE>
         <NUMBER>1</NUMBER>
@@ -46,9 +56,12 @@
         <NAME>Rivers</NAME>
         <STARTFRAME>1293</STARTFRAME>
         <RIPPLE>1</RIPPLE>
+        <HANDTEXT>1</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
         <REGIONS>
             <REGION>
-                <NAME>Lac Clair</NAME>
+                <NAME>Lac&#x0A;Clair</NAME>
                 <PT>
                     <X>983.000000000</X>
                     <Y>501.000000000</Y>
@@ -83,7 +96,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Lac Louise</NAME>
+                <NAME>Lac&#x0A;Louise</NAME>
                 <PT>
                     <X>839.000000000</X>
                     <Y>466.000000000</Y>
@@ -114,7 +127,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Lac McDonald</NAME>
+                <NAME>Lac&#x0A;McDonald</NAME>
                 <PT>
                     <X>544.000000000</X>
                     <Y>144.000000000</Y>
@@ -149,7 +162,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Lac Sir John</NAME>
+                <NAME>Lac&#x0A;Sir John</NAME>
                 <PT>
                     <X>1113.000000000</X>
                     <Y>404.000000000</Y>
@@ -184,7 +197,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Rivière Calumet</NAME>
+                <NAME>Rivière&#x0A;Calumet</NAME>
                 <PT>
                     <X>528.000000000</X>
                     <Y>714.000000000</Y>
@@ -215,7 +228,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Rivière Kingsey</NAME>
+                <NAME>Rivière&#x0A;Kingsey</NAME>
                 <PT>
                     <X>598.000000000</X>
                     <Y>714.000000000</Y>
@@ -250,7 +263,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Rivière Ouest</NAME>
+                <NAME>Rivière&#x0A;Ouest</NAME>
                 <PT>
                     <X>1014.000000000</X>
                     <Y>649.000000000</Y>
@@ -301,7 +314,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Rivière Rouge</NAME>
+                <NAME>Rivière&#x0A;Rouge</NAME>
                 <PT>
                     <X>528.000000000</X>
                     <Y>717.000000000</Y>
@@ -364,7 +377,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Rivière des Outaouais</NAME>
+                <NAME>Rivière des&#x0A;Outaouais</NAME>
                 <PT>
                     <X>275.000000000</X>
                     <Y>755.000000000</Y>
@@ -451,7 +464,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Rivière du Nord</NAME>
+                <NAME>Rivière&#x0A;du Nord</NAME>
                 <PT>
                     <X>975.000000000</X>
                     <Y>810.000000000</Y>
@@ -513,6 +526,9 @@
         <NAME>Natives</NAME>
         <STARTFRAME>2600</STARTFRAME>
         <RIPPLE>1</RIPPLE>
+        <HANDTEXT>1</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
     </PHASE>
     <PHASE>
         <NUMBER>3</NUMBER>
@@ -520,6 +536,9 @@
         <NAME>History</NAME>
         <STARTFRAME>4272</STARTFRAME>
         <RIPPLE>1</RIPPLE>
+        <HANDTEXT>0</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
     </PHASE>
     <PHASE>
         <NUMBER>4</NUMBER>
@@ -527,6 +546,9 @@
         <NAME>Beavers</NAME>
         <STARTFRAME>5600</STARTFRAME>
         <RIPPLE>1</RIPPLE>
+        <HANDTEXT>0</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>15</NEARTHRESHOLD>
     </PHASE>
     <PHASE>
         <NUMBER>5</NUMBER>
@@ -534,6 +556,9 @@
         <NAME>Trees</NAME>
         <STARTFRAME>7200</STARTFRAME>
         <RIPPLE>0</RIPPLE>
+        <HANDTEXT>0</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
     </PHASE>
     <PHASE>
         <NUMBER>6</NUMBER>
@@ -541,6 +566,9 @@
         <NAME>Municipalities</NAME>
         <STARTFRAME>9000</STARTFRAME>
         <RIPPLE>0</RIPPLE>
+        <HANDTEXT>1</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
         <REGIONS>
             <REGION>
                 <NAME>Canton&#x0A;Harrington</NAME>
@@ -818,6 +846,9 @@
         <NAME>Churches</NAME>
         <STARTFRAME>3400</STARTFRAME>
         <RIPPLE>1</RIPPLE>
+        <HANDTEXT>1</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
         <REGIONS>
             <REGION>
                 <NAME>Avoca&#x0A;Baptist</NAME>
@@ -1724,6 +1755,9 @@
         <NAME>Stations</NAME>
         <STARTFRAME>4300</STARTFRAME>
         <RIPPLE>1</RIPPLE>
+        <HANDTEXT>1</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
     </PHASE>
     <PHASE>
         <NUMBER>9</NUMBER>
@@ -1731,6 +1765,9 @@
         <NAME>Photos</NAME>
         <STARTFRAME>5440</STARTFRAME>
         <RIPPLE>0</RIPPLE>
+        <HANDTEXT>1</HANDTEXT>
+        <FARTHRESHOLD>2</FARTHRESHOLD>
+        <NEARTHRESHOLD>42</NEARTHRESHOLD>
     </PHASE>
 </PHASEINFORMATION>
 <BEAVERS>
