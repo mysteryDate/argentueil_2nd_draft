@@ -1,3 +1,4 @@
+// Argenteuil final
 #include "ofApp.h"
 
 //--------------------------------------------------------------
@@ -14,7 +15,10 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
 	video = &firstVideo;
-	// video->setFrame(1200);
+	video->setFrame(1300);
+	currentPhase = 1;
+	// nextPhaseFrame = 5600 ;
+	nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
 	//kinect instructions
@@ -27,8 +31,6 @@ void ofApp::setup(){
 	// Hand display
 	font.loadFont("fonts/AltoPro-Normal.ttf", 12);
 
-	currentPhase = -1;
-	nextPhaseFrame = 1;
 
 	// Set up beavers for phase 4
 	XML.pushTag("BEAVERS");
@@ -62,19 +64,16 @@ void ofApp::setup(){
 	fbo.begin();
 		ofClear(0,0,0,255);
 	fbo.end();
-	brushImg.loadImage("brush.png");
+	// brushImg.loadImage("brush.png");
 
-	// Creating regions
-	// regionNames.push_back("Rivière des\nOutaouais");
-	// regionNames.push_back("Rivière\ndu Nord");
-	// regionNames.push_back("Rivière\nOuest");
-	// regionNames.push_back("Rivière\nCalumet");
-	// regionNames.push_back("Rivière\nRouge");
-	// activeRegion = 0;
-	// for (int i = 0; i < regionNames.size(); ++i)
-	// {
-	// 	regions.insert(pair<string, ofPolyline>(regionNames[i], ofPolyline()));
-	// }
+	// Creating church regions
+	activeRegion = 0;
+	ofBuffer buffer = ofBufferFromFile("river_names.txt");
+	while(!buffer.isLastLine() ) {
+		string name = buffer.getNextLine().c_str();
+		regionNames.push_back( name );
+		regions.insert(pair<string, ofPolyline>(name, ofPolyline()));
+	}
 
 }	
 
@@ -181,6 +180,9 @@ void ofApp::draw(){
 
 }
 
+//--------------------------------------------------------------
+// Custom functions
+//--------------------------------------------------------------
 void ofApp::adjustPhase() {
 
 	video->update();
@@ -225,21 +227,23 @@ void ofApp::updateRegions() {
 
 	regions.clear();
 	XML.pushTag("PHASE", currentPhase);
-	XML.pushTag("REGIONS");
-	for (int i = 0; i < XML.getNumTags("REGION"); ++i)
-	{
-		XML.pushTag("REGION", i);
-		string name = XML.getValue("NAME", "unknown");
-		regions.insert(pair<string, ofPolyline>(name, ofPolyline()));
-		for (int j = 0; j < XML.getNumTags("PT"); ++j)
+	if(XML.getNumTags("REGIONS") > 0) {
+		XML.pushTag("REGIONS");
+		for (int i = 0; i < XML.getNumTags("REGION"); ++i)
 		{
-			int x = XML.getValue("PT:X", 0, j);
-			int y = XML.getValue("PT:Y", 0, j);
-			regions[name].addVertex(ofPoint(x,y));
+			XML.pushTag("REGION", i);
+			string name = XML.getValue("NAME", "unknown");
+			regions.insert(pair<string, ofPolyline>(name, ofPolyline()));
+			for (int j = 0; j < XML.getNumTags("PT"); ++j)
+			{
+				int x = XML.getValue("PT:X", 0, j);
+				int y = XML.getValue("PT:Y", 0, j);
+				regions[name].addVertex(ofPoint(x,y));
+			}
+			XML.popTag();
 		}
-		XML.popTag();
+	    XML.popTag();
 	}
-    XML.popTag();
     XML.popTag();
 
 }
@@ -409,11 +413,14 @@ void ofApp::drawHandText() {
 			if ( (side == 0 or side == 2 ) and tip.y < center.y ) 
 				angle += 180;
 			ofRotateZ(angle);
-			ofPoint textCenter = font.getStringBoundingBox(palmText, 0, 0).getCenter();
-			float width = font.getStringBoundingBox(palmText, 0, 0).getWidth();
+			ofRectangle textBox = font.getStringBoundingBox(palmText, 0, 0);
+			ofPoint textCenter = textBox.getCenter();
+			float tWidth = textBox.getWidth();
+			float tHeight = textBox.getHeight();
+			float tSize = max(tWidth, 2*tHeight);
 			ofTranslate(-textCenter.x, -textCenter.y);
 			float size = ofDist(tip.x, tip.y, center.x, center.y);
-			ofScale(size/width*0.75, size/width*0.75);
+			// ofScale(size/tSize, size/tSize);
 			font.drawString(palmText, 0, 0);
 		ofPopMatrix();
 	}
@@ -423,7 +430,7 @@ void ofApp::drawHandText() {
 void ofApp::drawFeedback() {
 
 	ofPushStyle();
-	depthImage.draw(0,0);
+	// depthImage.draw(0,0);
 	ofSetColor(0,255,0);
 	ContourFinder.draw();
 
@@ -445,15 +452,14 @@ void ofApp::drawFeedback() {
 	}
 
 	ofPushStyle();
-	int r = 0, g = 0, b = 0;
-	for(auto i=regions.begin(); i!=regions.end(); ++i) {
-		ofSetColor(r,g,b);
-		i->second.draw();
-		r += 100;
-		g += 150;
-		b += 50;
-
+	int i = 0;
+	for(auto iter=regions.begin(); iter!=regions.end(); ++iter) {
+		ofSetColor( (i&1) * 255, (i&2) * 128, (i&4) * 64); // A color varying tool I'm quite proud of
+		iter->second.draw();
+		i++;
 	}
+	ofSetColor(255,255,255);
+	regions[regionNames[activeRegion]].draw();
 	ofPopStyle();
 
 	stringstream reportStream;
@@ -465,9 +471,9 @@ void ofApp::drawFeedback() {
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
 	<< "playing: " << ofToString(video->isPlaying()) << endl
 	<< "Paused: " << ofToString(video->isPaused()) << endl
-	// << "activeRegion: " << regionNames[activeRegion] << endl
 	// << "speed: " << speed << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
+	font.drawString(regionNames[activeRegion], 20, 800);
 	// if  ( ContourFinder.size() == 1 ) {
 	// 	ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
 	// 	ofPoint min = rect.getMin();
@@ -523,19 +529,19 @@ void ofApp::keyPressed(int key){
 			secondVideo.setSpeed(speed);
 			break;
 
-		// case OF_KEY_LEFT: 
-		// 	if(activeRegion == 0)
-		// 		activeRegion = regionNames.size() - 1;
-		// 	else
-		// 		activeRegion--;
-		// 	break;
+		case OF_KEY_LEFT: 
+			if(activeRegion == 0)
+				activeRegion = regionNames.size() - 1;
+			else
+				activeRegion--;
+			break;
 
-		// case OF_KEY_RIGHT: 
-		// 	if(activeRegion == regionNames.size() - 1)
-		// 		activeRegion = 0;
-		// 	else
-		// 		activeRegion++;
-		// 	break;
+		case OF_KEY_RIGHT: 
+			if(activeRegion == regionNames.size() - 1)
+				activeRegion = 0;
+			else
+				activeRegion++;
+			break;
 
 		// case OF_KEY_LEFT: 
 		// 	x--;
@@ -626,37 +632,37 @@ void ofApp::keyPressed(int key){
 			bLearnBackground = true;
 			break;
 
-		// case 'S': {
-		// 	XML.pushTag("PHASEINFORMATION");
-		// 	XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
-		// 	if (XML.getNumTags("REGIONS") == 0)
-		// 		XML.addTag("REGIONS");
-		// 	XML.pushTag("REGIONS");
-		// 	XML.clear();
-		// 	for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
-		// 		int rNum = XML.addTag("REGION");
-		// 		XML.setValue("REGION:NAME", iterator->first, rNum);
-		// 		XML.pushTag("REGION", rNum);
-		// 		for (int i = 0; i < iterator->second.size(); ++i)
-		// 		{
-		// 			int vNum = XML.addTag("PT");
-		// 			XML.setValue("PT:X", iterator->second[i].x, vNum);
-		// 			XML.setValue("PT:Y", iterator->second[i].y, vNum);
-		// 		}
-		// 		XML.popTag();
-		// 	}
-		// 	XML.saveFile("settings.xml");
-		// 	cout << "Settings saved!";
-		// 	break;
-		// }
+		case 'S': {
+			XML.pushTag("PHASEINFORMATION");
+			XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
+			if (XML.getNumTags("REGIONS") == 0)
+				XML.addTag("REGIONS");
+			XML.pushTag("REGIONS");
+			XML.clear();
+			for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
+				int rNum = XML.addTag("REGION");
+				XML.setValue("REGION:NAME", iterator->first, rNum);
+				XML.pushTag("REGION", rNum);
+				for (int i = 0; i < iterator->second.size(); ++i)
+				{
+					int vNum = XML.addTag("PT");
+					XML.setValue("PT:X", iterator->second[i].x, vNum);
+					XML.setValue("PT:Y", iterator->second[i].y, vNum);
+				}
+				XML.popTag();
+			}
+			XML.saveFile("settings.xml");
+			cout << "Settings saved!";
+			break;
+		}
 	}
 
 }
 //--------------------------------------------------------------
 void ofApp::mousePressed(int mx, int my, int button){
 
-	// string name = regionNames[activeRegion];
-	// regions[name].addVertex(mx, my);
+	string name = regionNames[activeRegion];
+	regions[name].addVertex(mx, my);
 	return;
 
 }
