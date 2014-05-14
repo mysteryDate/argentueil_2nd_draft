@@ -236,10 +236,10 @@ ofPoint ArmContourFinder::findEnd(int n) {
 
 		endPoints.resize(1);
 
-		if(endPoints[0].x <= bounds[0] + 10) side[l] = 0;
-		else if(endPoints[0].y <= bounds[1] + 10) side[l] = 1;
-		else if(endPoints[0].x >= bounds[2] - 10) side[l] = 2;
-		else if(endPoints[0].y >= bounds[3] - 10) side[l] = 3;
+		if(endPoints[0].x <= bounds[0] + 2) side[l] = 0;
+		else if(endPoints[0].y <= bounds[1] + 2) side[l] = 1;
+		else if(endPoints[0].x >= bounds[2] - 2) side[l] = 2;
+		else if(endPoints[0].y >= bounds[3] - 2) side[l] = 3;
 	}
 
 

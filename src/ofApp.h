@@ -41,7 +41,7 @@ public:
 	void updateBeavers();
 
 	void draw();
-	void drawHandMask(ofColor color = ofColor(0,0,0), bool bDrawArms = true);
+	void drawHandMask(ofColor color = ofColor(0,0,0), bool bDrawArms = true, bool scale = false);
 	void drawBeavers();
 	void drawHandText();
 	void drawFeedback();

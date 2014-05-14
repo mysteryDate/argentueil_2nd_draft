@@ -15,10 +15,10 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(5500);
-	currentPhase = 3;
-	nextPhaseFrame = 5600;
-	// nextPhaseFrame = video->getCurrentFrame() + 1;
+	// video->setFrame(5500);
+	currentPhase = -1;
+	// nextPhaseFrame = 5600;
+	nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
 	//kinect instructions
@@ -165,10 +165,8 @@ void ofApp::draw(){
 		}
 	ofPopMatrix();
 
-	// if(currentPhase != 4)
-		drawHandMask(ofColor(0,0,0));
-
 	if(bHandText)
+		drawHandMask(ofColor(0,0,0));
 		drawHandText();
 
 	drawBeavers();
@@ -266,7 +264,7 @@ void ofApp::updateRipples() {
 			ofTranslate(-video_x, -video_y);
 			ofScale(video->getWidth() / video_w,  video->getHeight() / video_h);
 			ofRotateZ(-video_r);
-			drawHandMask(ofColor(255,255,255), !bHandText);
+			drawHandMask(ofColor(255,255,255), !bHandText, true);
 			drawBeavers();
 
 		ofPopMatrix();
@@ -286,7 +284,7 @@ void ofApp::updateBeavers() {
 
 	float Iw = gifFrames[0].getWidth();
 	float Ih = gifFrames[0].getHeight();
-	float beaverScaleUp = 1.2; // makes them easier to catch
+	float beaverScaleUp = 1.4; // makes them easier to catch
 
 	for (int i = 0; i < Beavers.size(); ++i)
 	{
@@ -325,7 +323,7 @@ void ofApp::updateBeavers() {
 			for (int k = 0; k < line.size(); ++k)
 			{
 				if(corners.inside(line[k].x, line[k].y)) {
-					B->v = 0;
+					B->v = 10;
 					B->hidden = true;
 					continue;
 				}
@@ -351,8 +349,8 @@ void ofApp::drawBeavers() {
 	}
 
 }
-
-void ofApp::drawHandMask(ofColor color, bool bDrawArms) {
+// third argument scales the color based on hand velocity
+void ofApp::drawHandMask(ofColor color, bool bDrawArms, bool scale) {
 
 	ofPushStyle();
 	ofSetColor(color);
@@ -377,6 +375,14 @@ void ofApp::drawHandMask(ofColor color, bool bDrawArms) {
 	else{
 		for (int i = 0; i < ContourFinder.hands.size(); ++i)
 		{
+			if(scale) {
+				float vel = ContourFinder.hands[i].velocity.length();
+				float s = ofMap(vel, 1, 8, 0, 1, true);
+				color.r *= s;
+				color.g *= s;
+				color.b *= s;
+			}
+			ofSetColor(color);
 			ofPolyline blob = ContourFinder.hands[i].line;
 			blob = blob.getSmoothed(4);
 
