@@ -643,7 +643,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Mun. De&#x0A;Grenville et&#x0A;Augmentation</NAME>
+                <NAME>Municipalité De&#x0A;Grenville et&#x0A;Augmentation</NAME>
                 <PT>
                     <X>709.000000000</X>
                     <Y>406.000000000</Y>
@@ -682,7 +682,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Mun. De&#x0A;St-Jerusalem</NAME>
+                <NAME>Municipalité De&#x0A;St-Jerusalem</NAME>
                 <PT>
                     <X>1274.000000000</X>
                     <Y>479.000000000</Y>
@@ -717,7 +717,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Mun. Des&#x0A;Mille-Iles</NAME>
+                <NAME>Municipalité&#x0A;Des Mille-Iles</NAME>
                 <PT>
                     <X>1059.000000000</X>
                     <Y>211.000000000</Y>
@@ -748,7 +748,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Mun. Du&#x0A;Canton&#x0A;Chatham</NAME>
+                <NAME>Municipalité Du&#x0A;Canton Chatham</NAME>
                 <PT>
                     <X>718.000000000</X>
                     <Y>791.000000000</Y>
@@ -779,7 +779,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Mun. Du&#x0A;Canton&#x0A;De Gore</NAME>
+                <NAME>Municipalité Du&#x0A;Canton&#x0A;De Gore</NAME>
                 <PT>
                     <X>1062.000000000</X>
                     <Y>215.000000000</Y>
@@ -857,7 +857,7 @@
         <NEARTHRESHOLD>42</NEARTHRESHOLD>
         <REGIONS>
             <REGION>
-                <NAME>Avoca&#x0A;Baptist</NAME>
+                <NAME>Église Avoca&#x0A;Baptist</NAME>
                 <PT>
                     <X>509.000000000</X>
                     <Y>419.000000000</Y>
@@ -900,7 +900,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Baptiste de&#x0A;Rivington</NAME>
+                <NAME>Église Baptiste&#x0A;de Rivington</NAME>
                 <PT>
                     <X>532.000000000</X>
                     <Y>301.000000000</Y>
@@ -982,7 +982,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Dalesville Baptist</NAME>
+                <NAME>Église Dalesville&#x0A;Baptist</NAME>
                 <PT>
                     <X>982.000000000</X>
                     <Y>451.000000000</Y>
@@ -1017,7 +1017,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Harrington&#x0A;United</NAME>
+                <NAME>Église&#x0A;Harrington United</NAME>
                 <PT>
                     <X>532.000000000</X>
                     <Y>303.000000000</Y>
@@ -1060,7 +1060,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Holy Trinity&#x0A;de Lakefield</NAME>
+                <NAME>Église Holy Trinity&#x0A;de Lakefield</NAME>
                 <PT>
                     <X>611.000000000</X>
                     <Y>687.000000000</Y>
@@ -1103,7 +1103,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Immaculée&#x0A;Conception</NAME>
+                <NAME>Église Immaculée&#x0A;Conception</NAME>
                 <PT>
                     <X>1078.000000000</X>
                     <Y>673.000000000</Y>
@@ -1146,7 +1146,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Lost River</NAME>
+                <NAME>Église&#x0A;Lost River</NAME>
                 <PT>
                     <X>590.000000000</X>
                     <Y>281.000000000</Y>
@@ -1181,7 +1181,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Mille Isles&#x0A;Presbyterian</NAME>
+                <NAME>Église Mille Isles&#x0A;Presbyterian</NAME>
                 <PT>
                     <X>1044.000000000</X>
                     <Y>198.000000000</Y>
@@ -1212,7 +1212,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Notre-Dame-des&#x0A;Sept-Douleurs</NAME>
+                <NAME>Église Notre&#x0A;Dame-des&#x0A;Sept-Douleurs</NAME>
                 <PT>
                     <X>610.000000000</X>
                     <Y>689.000000000</Y>
@@ -1251,7 +1251,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Notre-Dame&#x0A;du-Rosaire</NAME>
+                <NAME>Église Notre-Dame&#x0A;du-Rosaire</NAME>
                 <PT>
                     <X>653.000000000</X>
                     <Y>720.000000000</Y>
@@ -1294,7 +1294,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Aidan</NAME>
+                <NAME>Église&#x0A;Saint-Aidan</NAME>
                 <PT>
                     <X>1066.000000000</X>
                     <Y>367.000000000</Y>
@@ -1325,7 +1325,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Andrew&#x0A;Presbytérien</NAME>
+                <NAME>Église Saint-Andrew&#x0A;Presbytérien</NAME>
                 <PT>
                     <X>542.000000000</X>
                     <Y>602.000000000</Y>
@@ -1360,7 +1360,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint&#x0A;André-Apôtre</NAME>
+                <NAME>Église Saint&#x0A;André-Apôtre</NAME>
                 <PT>
                     <X>1012.000000000</X>
                     <Y>708.000000000</Y>
@@ -1407,7 +1407,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-John&#x0A;Shrewsbury</NAME>
+                <NAME>Église Saint&#x0A;John Shrewsbury</NAME>
                 <PT>
                     <X>1189.000000000</X>
                     <Y>332.000000000</Y>
@@ -1438,7 +1438,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Joseph</NAME>
+                <NAME>Église Saint&#x0A;Joseph</NAME>
                 <PT>
                     <X>1067.000000000</X>
                     <Y>798.000000000</Y>
@@ -1481,7 +1481,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Louis&#x0A;de-France</NAME>
+                <NAME>Église Saint-Louis&#x0A;de-France</NAME>
                 <PT>
                     <X>990.000000000</X>
                     <Y>544.000000000</Y>
@@ -1520,7 +1520,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Ludger</NAME>
+                <NAME>Église&#x0A;Saint-Ludger</NAME>
                 <PT>
                     <X>540.000000000</X>
                     <Y>600.000000000</Y>
@@ -1563,7 +1563,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Matthew</NAME>
+                <NAME>Église&#x0A;Saint-Matthew</NAME>
                 <PT>
                     <X>622.000000000</X>
                     <Y>717.000000000</Y>
@@ -1594,7 +1594,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Mungo</NAME>
+                <NAME>Église&#x0A;Saint-Mungo</NAME>
                 <PT>
                     <X>905.000000000</X>
                     <Y>844.000000000</Y>
@@ -1633,7 +1633,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Paul</NAME>
+                <NAME>Église&#x0A;Saint-Paul</NAME>
                 <PT>
                     <X>981.000000000</X>
                     <Y>450.000000000</Y>
@@ -1672,7 +1672,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Saint-Philippe</NAME>
+                <NAME>Église&#x0A;Saint-Philippe</NAME>
                 <PT>
                     <X>979.000000000</X>
                     <Y>756.000000000</Y>
@@ -1715,7 +1715,7 @@
                 </PT>
             </REGION>
             <REGION>
-                <NAME>Sainte-Anastasie</NAME>
+                <NAME>Église&#x0A;Sainte-Anastasie</NAME>
                 <PT>
                     <X>1146.000000000</X>
                     <Y>617.000000000</Y>

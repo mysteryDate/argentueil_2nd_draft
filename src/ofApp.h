@@ -103,6 +103,8 @@ public:
 	// Font display
 	ofxTrueTypeFontUC 	font;
 	bool 				bHandText;
+	map< unsigned int, vector<ofPoint> > stableHands;
+	float 				minVelocity;
 
 	// Calibration settings
 	float video_x, video_y, video_w, video_h, video_r;

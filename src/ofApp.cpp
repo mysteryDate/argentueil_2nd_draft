@@ -15,10 +15,10 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(1200);
-	currentPhase = -1;
-	nextPhaseFrame = 1293;
-	nextPhaseFrame = video->getCurrentFrame() + 1;
+	video->setFrame(5500);
+	currentPhase = 3;
+	nextPhaseFrame = 5600;
+	// nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
 	//kinect instructions
@@ -31,6 +31,7 @@ void ofApp::setup(){
 	// Hand display
 	font.loadFont("fonts/AltoPro-Normal.ttf", 12);
 	bHandText = false;
+	minVelocity = 1;
 
 	// Set up beavers for phase 4
 	XML.pushTag("BEAVERS");
@@ -164,7 +165,8 @@ void ofApp::draw(){
 		}
 	ofPopMatrix();
 
-	drawHandMask(ofColor(0,0,0));
+	// if(currentPhase != 4)
+		drawHandMask(ofColor(0,0,0));
 
 	if(bHandText)
 		drawHandText();
@@ -303,14 +305,14 @@ void ofApp::updateBeavers() {
 		}
 		Beavers[i].update(nearestHand);
 		Critter * B = &Beavers[i];
-		vector< ofPoint > corners;
+		ofPolyline corners;
 		for (int j = 0; j < 4; ++j)
 		{
 			int xd = (j & 1)*2 - 1;
 			int yd = (j & 2) - 1;
 			float x = B->p.x + beaverScaleUp*cos(B->d*PI/180)*Iw*xd/2 + beaverScaleUp*sin(B->d*PI/180)*Ih*yd/2;
 			float y = B->p.y - beaverScaleUp*sin(B->d*PI/180)*Iw*xd/2 + beaverScaleUp*cos(B->d*PI/180)*Ih*yd/2;
-			corners.push_back(ofPoint(x,y));
+			corners.addVertex(ofPoint(x,y));
 		}
 		// Beaver has left the building
 		if(B->p.x > ofGetWindowWidth() + Iw or B->p.x < 0 - Iw or B->p.y > ofGetWindowHeight() + Iw or B->p.y < 0 - Iw)
@@ -320,16 +322,12 @@ void ofApp::updateBeavers() {
 		for (int j = 0; j < ContourFinder.size(); ++j)
 		{
 			ofPolyline line = utility::transform(ContourFinder.getPolyline(j), kinect_x, kinect_y, kinect_z);
-			if( line.inside(B->p.x, B->p.y) )  {
-				B->v = 0;
-				B->hidden = true;
-				continue;
-			}
-			for (int k = 0; k < corners.size(); ++k)
+			for (int k = 0; k < line.size(); ++k)
 			{
-				if( line.inside(corners[k]) ) {
+				if(corners.inside(line[k].x, line[k].y)) {
 					B->v = 0;
 					B->hidden = true;
+					continue;
 				}
 			}
 		}
@@ -400,9 +398,20 @@ void ofApp::drawHandText() {
 	for (int i = 0; i < ContourFinder.hands.size(); ++i)
 	{
 		string palmText;
+		unsigned int label = ContourFinder.hands[i].label;
+		stableHands[label].resize(2);
+
 		ofPoint center 	= ContourFinder.hands[i].centroid;
 		ofPoint tip 	= ContourFinder.hands[i].tip;
 		int side 		= ContourFinder.hands[i].side;
+		if( ContourFinder.hands[i].velocity.length() < minVelocity ) {
+			center = stableHands[label][0];
+			tip = stableHands[label][1];
+		}
+		else {
+			stableHands[label][0] = center;
+			stableHands[label][1] = tip;
+		}
 		// Transform to proper reference frame
 		center.x = center.x * kinect_z + kinect_x;
 		center.y = center.y * kinect_z + kinect_y;
@@ -487,6 +496,7 @@ void ofApp::drawFeedback() {
 	<< "playing: " << ofToString(video->isPlaying()) << endl
 	<< "Paused: " << ofToString(video->isPaused()) << endl
 	<< "speed: " << speed << endl
+	<< "minVelocity: " << minVelocity << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 	if(ContourFinder.hands.size() == 1)
 		reportStream << "velocity: " << ofToString(ContourFinder.hands[0].velocity) << endl;
@@ -551,17 +561,17 @@ void ofApp::keyPressed(int key){
 
 	switch(key) {
 
-		case OF_KEY_DOWN: 
-			speed *= 0.9;
-			firstVideo.setSpeed(speed);
-			secondVideo.setSpeed(speed);
-			break;
+		// case OF_KEY_DOWN: 
+		// 	speed *= 0.9;
+		// 	firstVideo.setSpeed(speed);
+		// 	secondVideo.setSpeed(speed);
+		// 	break;
 
-		case OF_KEY_UP: 
-			speed *= 1.1;
-			firstVideo.setSpeed(speed);
-			secondVideo.setSpeed(speed);
-			break;
+		// case OF_KEY_UP: 
+		// 	speed *= 1.1;
+		// 	firstVideo.setSpeed(speed);
+		// 	secondVideo.setSpeed(speed);
+		// 	break;
 
 		// case OF_KEY_LEFT: 
 		// 	if(activeRegion == 0)
@@ -662,48 +672,56 @@ void ofApp::keyPressed(int key){
 			break;
 		}
 
+		case 'V':
+			minVelocity += 0.1;
+			break;
+
+		case 'v':
+			minVelocity -= 0.1;
+			break;
+
 		case OF_KEY_RETURN:
 			bLearnBackground = true;
 			break;
 
-		// case 'S': {
-		// 	// For saving regions
-		// 	// XML.pushTag("PHASEINFORMATION");
-		// 	// XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
-		// 	// if (XML.getNumTags("REGIONS") == 0)
-		// 	// 	XML.addTag("REGIONS");
-		// 	// XML.pushTag("REGIONS");
-		// 	// XML.clear();
-		// 	// for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
-		// 	// 	int rNum = XML.addTag("REGION");
-		// 	// 	XML.setValue("REGION:NAME", iterator->first, rNum);
-		// 	// 	XML.pushTag("REGION", rNum);
-		// 	// 	for (int i = 0; i < iterator->second.size(); ++i)
-		// 	// 	{
-		// 	// 		int vNum = XML.addTag("PT");
-		// 	// 		XML.setValue("PT:X", iterator->second[i].x, vNum);
-		// 	// 		XML.setValue("PT:Y", iterator->second[i].y, vNum);
-		// 	// 	}
-		// 	// 	XML.popTag();
-		// 	// }
-		// 	// Saving calibration
-		// 	XML.pushTag(ofToString(PLATFORM));
-		// 		XML.pushTag("KINECT");
-		// 		if(REGISTRATION)
-		// 			XML.pushTag("REGISTRATION");
-		// 		else
-		// 			XML.pushTag("NOREGISTRATION");
+		case 'S': {
+			// For saving regions
+			// XML.pushTag("PHASEINFORMATION");
+			// XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
+			// if (XML.getNumTags("REGIONS") == 0)
+			// 	XML.addTag("REGIONS");
+			// XML.pushTag("REGIONS");
+			// XML.clear();
+			// for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
+			// 	int rNum = XML.addTag("REGION");
+			// 	XML.setValue("REGION:NAME", iterator->first, rNum);
+			// 	XML.pushTag("REGION", rNum);
+			// 	for (int i = 0; i < iterator->second.size(); ++i)
+			// 	{
+			// 		int vNum = XML.addTag("PT");
+			// 		XML.setValue("PT:X", iterator->second[i].x, vNum);
+			// 		XML.setValue("PT:Y", iterator->second[i].y, vNum);
+			// 	}
+			// 	XML.popTag();
+			// }
+			// Saving calibration
+			XML.pushTag(ofToString(PLATFORM));
+				XML.pushTag("KINECT");
+				if(REGISTRATION)
+					XML.pushTag("REGISTRATION");
+				else
+					XML.pushTag("NOREGISTRATION");
 
-		// 				XML.setValue("X", kinect_x);
-		// 				XML.setValue("Y", kinect_y);
-		// 				XML.setValue("Z", kinect_z);
-		// 			XML.popTag();
-		// 		XML.popTag();
-		// 	XML.popTag();
-		// 	XML.saveFile("settings.xml");
-		// 	cout << "Settings saved!";
-		// 	break;
-		// }
+						XML.setValue("X", kinect_x);
+						XML.setValue("Y", kinect_y);
+						XML.setValue("Z", kinect_z);
+					XML.popTag();
+				XML.popTag();
+			XML.popTag();
+			XML.saveFile("settings.xml");
+			cout << "Settings saved!";
+			break;
+		}
 	}
 
 }
