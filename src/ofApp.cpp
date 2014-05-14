@@ -15,9 +15,9 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
 	video = &firstVideo;
-//	video->setFrame(1300);
+	video->setFrame(1200);
 	currentPhase = -1;
-	// nextPhaseFrame = 5600 ;
+	nextPhaseFrame = 1293;
 	nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
@@ -254,7 +254,7 @@ void ofApp::updateRipples() {
 
 	bounce.setTexture(video->getTextureReference(), 1);
 	int frameDiff = nextPhaseFrame - video->getCurrentFrame();
-	ripples.damping = ofMap(frameDiff, 100, 0, 0.995, 0, true);
+	ripples.damping = ofMap(frameDiff, 300, 0, 0.995, 0.5, true);
 	// Water ripples
 	ripples.begin();
 		ofPushStyle();
@@ -488,6 +488,8 @@ void ofApp::drawFeedback() {
 	<< "Paused: " << ofToString(video->isPaused()) << endl
 	<< "speed: " << speed << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
+	if(ContourFinder.hands.size() == 1)
+		reportStream << "velocity: " << ofToString(ContourFinder.hands[0].velocity) << endl;
 	// font.drawString(regionNames[activeRegion], 20, 800);
 	// if  ( ContourFinder.size() == 1 ) {
 	// 	ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));

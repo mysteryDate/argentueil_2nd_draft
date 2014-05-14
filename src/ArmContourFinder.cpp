@@ -104,6 +104,7 @@ void ArmContourFinder::updateHands() {
 		ofPoint oldKeypoints[] = {hands[i].centroid, hands[i].end, hands[i].tip, hands[i].wrists[0], hands[i].wrists[1]};
 		ofPoint * keypoints[] = {&handCopy.centroid, &handCopy.end, &handCopy.tip, &handCopy.wrists[0], &handCopy.wrists[1]};
 
+
 		if( !(newHands[i].centroid.x == 0 and newHands[i].centroid.y == 0) ) 
 		{
 			for (int j = 0; j < 5; ++j)
@@ -112,8 +113,31 @@ void ArmContourFinder::updateHands() {
 				float smoothedY = ofLerp(keypoints[j]->y, oldKeypoints[j].y, smoothingRate);
 				*keypoints[j] = ofPoint(smoothedX, smoothedY);
 			}
-			handCopy.velocity = ofVec2f((keypoints[0]->x - oldKeypoints[0].x)/2, (keypoints[0]->y - oldKeypoints[0].y)/2);	
+			// handCopy.velocity = ofVec2f((keypoints[0]->x - oldKeypoints[0].x)/2, (keypoints[0]->y - oldKeypoints[0].y)/2);	
 		}
+
+		// Lerped  veloctiy
+		vector< ofPoint > prevs = hands[i].previousPositions;
+		prevs.insert(prevs.begin(),handCopy.centroid);
+
+		ofPoint oldAverage = ofPoint(0,0);
+		ofPoint presentAverage = ofPoint(0,0);
+		for (int j = 0; j < prevs.size()/2; ++j)
+		{
+			oldAverage.x += prevs[j + prevs.size()/2].x;
+			presentAverage.x += prevs[j].x;
+			oldAverage.y += prevs[j + prevs.size()/2].y;
+			presentAverage.y += prevs[j].y;
+		}
+        
+        oldAverage.x /= prevs.size()/2;
+		presentAverage.x /= prevs.size()/2;
+		oldAverage.y /= prevs.size()/2;
+		presentAverage.y /= prevs.size()/2;
+
+		handCopy.velocity = ofVec2f((presentAverage.x - oldAverage.x), (presentAverage.y - oldAverage.y));
+        if(prevs.size() > 12) prevs.resize(12);
+        handCopy.previousPositions = prevs;
 
 		hands[i] = handCopy;
 

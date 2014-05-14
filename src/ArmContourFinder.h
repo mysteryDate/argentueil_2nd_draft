@@ -28,6 +28,8 @@ public:
 		unsigned int label;
 		ofVec2f velocity;
 		int side;
+		// Used for finding velocity
+		vector<ofPoint> previousPositions;
 
 		//For sorting by label
 		bool operator < (const Hand& str) const
