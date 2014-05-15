@@ -76,8 +76,6 @@ void ofApp::setup(){
 	// 	regions.insert(pair<string, ofPolyline>(name, ofPolyline()));
 	// }
 
-	x = 0, y = 0, r = 0, z = 1;
-
 }	
 
 //--------------------------------------------------------------
@@ -524,11 +522,11 @@ void ofApp::drawFeedback() {
 	<< "frame: " << video->getCurrentFrame() << endl
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
-	// << "kinect_z: " << kinect_z << endl
-	<< "x: " << x << endl
-	<< "y: " << y << endl
-	<< "z: " << z << endl
-	<< "r: " << r << endl
+	<< "kinect_z: " << kinect_z << endl
+	// << "x: " << x << endl
+	// << "y: " << y << endl
+	// << "z: " << z << endl
+	// << "r: " << r << endl
 	// << "playing: " << ofToString(video->isPlaying()) << endl
 	// << "Paused: " << ofToString(video->isPaused()) << endl
 	// << "speed: " << speed << endl
@@ -624,33 +622,33 @@ void ofApp::keyPressed(int key){
 		// 	break;
 
 		case OF_KEY_LEFT:
-			x--; 
-			// kinect_x--;
+			// x--; 
+			kinect_x--;
 			break;
 
 		case OF_KEY_RIGHT:
-			x++; 
-			// kinect_x++;
+			// x++; 
+			kinect_x++;
 			break;
 
 		case OF_KEY_UP:
-			y--; 
-			// kinect_y--;
+			// y--; 
+			kinect_y--;
 			break;
 
 		case OF_KEY_DOWN:
-			y++; 
-			// kinect_y++;
+			// y++; 
+			kinect_y++;
 			break;
 
 		case 'Z':
-			z+=0.01; 
-			// kinect_z+=0.01;
+			// z+=0.01; 
+			kinect_z+=0.01;
 			break;
 
 		case 'z':
-			z-=0.01; 
-			// kinect_z-=0.01;
+			// z-=0.01; 
+			kinect_z-=0.01;
 			break;
 
 		case 'W': 
@@ -735,43 +733,46 @@ void ofApp::keyPressed(int key){
 		case 'S': {
 			// For saving regions
 			XML.pushTag("PHASEINFORMATION");
-			XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
-			if (XML.getNumTags("REGIONS") == 0)
-				XML.addTag("REGIONS");
-			XML.pushTag("REGIONS");
-			XML.clear();
-			for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
-				int rNum = XML.addTag("REGION");
-				XML.setValue("REGION:NAME", iterator->first, rNum);
-				XML.pushTag("REGION", rNum);
-				for (int i = 0; i < iterator->second.size(); ++i)
-				{
-					int vNum = XML.addTag("PT");
-					XML.setValue("PT:X", iterator->second[i].x, vNum);
-					XML.setValue("PT:Y", iterator->second[i].y, vNum);
-				}
+				XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
+					if (XML.getNumTags("REGIONS") == 0)
+						XML.addTag("REGIONS");
+					XML.pushTag("REGIONS");
+						XML.clear();
+						for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
+							int rNum = XML.addTag("REGION");
+							XML.setValue("REGION:NAME", iterator->first, rNum);
+							XML.pushTag("REGION", rNum);
+							for (int i = 0; i < iterator->second.size(); ++i)
+							{
+								int vNum = XML.addTag("PT");
+								XML.setValue("PT:X", iterator->second[i].x, vNum);
+								XML.setValue("PT:Y", iterator->second[i].y, vNum);
+							}
+							XML.popTag();
+						}
+					XML.popTag();
 				XML.popTag();
-			}
-//			Saving calibration
-			// XML.pushTag(ofToString(PLATFORM));
-			// 	XML.pushTag("VIDEO");
-			// 		XML.setValue("X", video_x);
-			// 		XML.setValue("Y", video_y);
-			// 		XML.setValue("W", video_w);
-			// 		XML.setValue("H", video_h);
-			// 	XML.popTag();
-			// 	XML.pushTag("KINECT");
-			// 	if(REGISTRATION)
-			// 		XML.pushTag("REGISTRATION");
-			// 	else
-			// 		XML.pushTag("NOREGISTRATION");
+			XML.popTag();
+			// Saving calibration
+			XML.pushTag(ofToString(PLATFORM));
+				XML.pushTag("VIDEO");
+					XML.setValue("X", video_x);
+					XML.setValue("Y", video_y);
+					XML.setValue("W", video_w);
+					XML.setValue("H", video_h);
+				XML.popTag();
+				XML.pushTag("KINECT");
+				if(REGISTRATION)
+					XML.pushTag("REGISTRATION");
+				else
+					XML.pushTag("NOREGISTRATION");
 
-			// 			XML.setValue("X", kinect_x);
-			// 			XML.setValue("Y", kinect_y);
-			// 			XML.setValue("Z", kinect_z);
-			// 		XML.popTag();
-			// 	XML.popTag();
-			// XML.popTag();
+						XML.setValue("X", kinect_x);
+						XML.setValue("Y", kinect_y);
+						XML.setValue("Z", kinect_z);
+					XML.popTag();
+				XML.popTag();
+			XML.popTag();
 			XML.saveFile("settings.xml");
 			cout << "Settings saved!";
 			break;
