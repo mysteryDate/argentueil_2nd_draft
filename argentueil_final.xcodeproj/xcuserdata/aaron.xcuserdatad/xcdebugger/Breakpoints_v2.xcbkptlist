@@ -15,7 +15,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "407"
             endingLineNumber = "407"
-            landmarkName = "ofApp::drawHandText()"
+            landmarkName = "ofApp::drawHandMask(ofColor color, bool bDrawArms, bool scale)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

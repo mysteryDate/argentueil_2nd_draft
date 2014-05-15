@@ -14,11 +14,11 @@ void ofApp::setup(){
 	secondVideo.loadMovie("videos/Map_Argenteuil_P2_v11.mov");
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
-	video = &firstVideo;
-	// video->setFrame(5500);
-	currentPhase = -1;
-	// nextPhaseFrame = 5600;
-	nextPhaseFrame = video->getCurrentFrame() + 1;
+	video = &secondVideo;
+	video->setFrame(3300);
+	currentPhase = 6;
+	nextPhaseFrame = 3400;
+	// nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
 	//kinect instructions
@@ -138,6 +138,12 @@ void ofApp::update(){
 			ofRotateZ(-video_r);
 				drawHandMask(ofColor(255,255,255,127), true);
 			ofPopMatrix();
+			// For a fade
+			float alpha = ofMap((nextPhaseFrame - video->getCurrentFrame()), 100, 0, 0, 7);
+			ofPushStyle();
+			ofSetColor(255,255,255,round(alpha));
+			ofRect(0,0,video->getWidth(), video->getHeight());
+			ofPopStyle();
 		maskFbo.end();
 
 		fbo.begin();
@@ -191,9 +197,11 @@ void ofApp::adjustPhase() {
 			currentPhase = 0;
 		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
 		if(currentPhase == 5) {
-			secondVideo.play();
+			secondVideo.setFrame(1900);
+			secondVideo.update();
 		}
 		if(currentPhase == 6) {
+			secondVideo.play();
 			video = &secondVideo;
 			firstVideo.stop();
 			firstVideo.setFrame(0);
@@ -218,10 +226,13 @@ void ofApp::adjustPhase() {
 	}
 	XML.popTag();
 
-	// Phase 5 is the magical phase
-	if(currentPhase == 5) {
-		secondVideo.update();
-	}
+	// // Phase 5 is the magical phase
+	// if(currentPhase == 5) {
+	// 	// ofImage img;
+	// 	// img.setFromPixels(secondVideo.getPixels(), secondVideo.getWidth(), secondVideo.getHeight(), OF_IMAGE_COLOR);
+	// 	// img.saveImage("second_video_still.png");
+	// 	// secondVideo.update();
+	// }
 
 }
 
@@ -254,7 +265,7 @@ void ofApp::updateRipples() {
 
 	bounce.setTexture(video->getTextureReference(), 1);
 	int frameDiff = nextPhaseFrame - video->getCurrentFrame();
-	ripples.damping = ofMap(frameDiff, 300, 0, 0.995, 0.5, true);
+	ripples.damping = ofMap(frameDiff, 100, 0, 0.995, 0, true);
 	// Water ripples
 	ripples.begin();
 		ofPushStyle();
@@ -460,9 +471,8 @@ void ofApp::drawFeedback() {
 	ofPushStyle();
 	depthImage.draw(0,0);
 	ofSetColor(0,255,0);
-	ofTranslate(crop_left, crop_right);
+	ofTranslate(crop_left, crop_top);
 		ContourFinder.draw();
-	ofTranslate(-crop_left, -crop_right);
 
 	for (int i = 0; i < ContourFinder.hands.size(); ++i)
 	{
@@ -480,6 +490,7 @@ void ofApp::drawFeedback() {
 		ofCircle(ContourFinder.hands[i].wrists[0], ContourFinder.MAX_WRIST_WIDTH);
 		ofCircle(ContourFinder.hands[i].wrists[0], ContourFinder.MIN_WRIST_WIDTH);
 	}
+	ofTranslate(-crop_left, -crop_top);
 
 	ofPushStyle();
 	int i = 0;
@@ -494,15 +505,15 @@ void ofApp::drawFeedback() {
 
 	stringstream reportStream;
 	reportStream
-	<< "nearThreshold: " << nearThreshold << endl
-	<< "farThreshold: " << farThreshold << endl
+	// << "nearThreshold: " << nearThreshold << endl
+	// << "farThreshold: " << farThreshold << endl
 	<< "frame: " << video->getCurrentFrame() << endl
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
-	<< "playing: " << ofToString(video->isPlaying()) << endl
-	<< "Paused: " << ofToString(video->isPaused()) << endl
-	<< "speed: " << speed << endl
-	<< "minVelocity: " << minVelocity << endl
+	// << "playing: " << ofToString(video->isPlaying()) << endl
+	// << "Paused: " << ofToString(video->isPaused()) << endl
+	// << "speed: " << speed << endl
+	// << "minVelocity: " << minVelocity << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 	if(ContourFinder.hands.size() == 1)
 		reportStream << "velocity: " << ofToString(ContourFinder.hands[0].velocity) << endl;
@@ -579,19 +590,19 @@ void ofApp::keyPressed(int key){
 		// 	secondVideo.setSpeed(speed);
 		// 	break;
 
-		// case OF_KEY_LEFT: 
-		// 	if(activeRegion == 0)
-		// 		activeRegion = regionNames.size() - 1;
-		// 	else
-		// 		activeRegion--;
-		// 	break;
+		case OF_KEY_LEFT: 
+			if(activeRegion == 0)
+				activeRegion = regions.size() - 1;
+			else
+				activeRegion--;
+			break;
 
-		// case OF_KEY_RIGHT: 
-		// 	if(activeRegion == regionNames.size() - 1)
-		// 		activeRegion = 0;
-		// 	else
-		// 		activeRegion++;
-		// 	break;
+		case OF_KEY_RIGHT: 
+			if(activeRegion == regions.size() - 1)
+				activeRegion = 0;
+			else
+				activeRegion++;
+			break;
 
 		// case OF_KEY_LEFT: 
 		// 	kinect_x--;
@@ -634,6 +645,14 @@ void ofApp::keyPressed(int key){
 		// case 'r': 
 		// 	r-= 0.1;
 		// 	break;
+
+		// case OF_KEY_LEFT:
+		// 	if(video->isPaused()) 
+		// 		video->setFrame(video->getCurrentFrame() - 1);
+
+		// case OF_KEY_RIGHT:
+		// 	if(video->isPaused()) 
+		// 		video->setFrame(video->getCurrentFrame() + 1);
 
 		case 'Z': 
 			kinect_z += 0.01;
@@ -711,19 +730,19 @@ void ofApp::keyPressed(int key){
 			// 	XML.popTag();
 			// }
 			// Saving calibration
-			XML.pushTag(ofToString(PLATFORM));
-				XML.pushTag("KINECT");
-				if(REGISTRATION)
-					XML.pushTag("REGISTRATION");
-				else
-					XML.pushTag("NOREGISTRATION");
+			// XML.pushTag(ofToString(PLATFORM));
+			// 	XML.pushTag("KINECT");
+			// 	if(REGISTRATION)
+			// 		XML.pushTag("REGISTRATION");
+			// 	else
+			// 		XML.pushTag("NOREGISTRATION");
 
-						XML.setValue("X", kinect_x);
-						XML.setValue("Y", kinect_y);
-						XML.setValue("Z", kinect_z);
-					XML.popTag();
-				XML.popTag();
-			XML.popTag();
+			// 			XML.setValue("X", kinect_x);
+			// 			XML.setValue("Y", kinect_y);
+			// 			XML.setValue("Z", kinect_z);
+			// 		XML.popTag();
+			// 	XML.popTag();
+			// XML.popTag();
 			XML.saveFile("settings.xml");
 			cout << "Settings saved!";
 			break;
@@ -734,7 +753,13 @@ void ofApp::keyPressed(int key){
 //--------------------------------------------------------------
 void ofApp::mousePressed(int mx, int my, int button){
 
-	// string name = regionNames[activeRegion];
+	// auto iter = regions.begin();
+	// int j = 0;
+	// while(j < activeRegion) {
+	// 	iter++;
+	// 	j++;
+	// }
+	// string name = iter->first;
 	// regions[name].addVertex(mx, my);
 	return;
 

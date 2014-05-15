@@ -12,7 +12,7 @@ ArmContourFinder::ArmContourFinder() {
 	setMinArea(50);
 
 	MIN_HAND_SIZE = 56;
-	MAX_HAND_SIZE = 99;
+	MAX_HAND_SIZE = 75;
 	MAX_WRIST_WIDTH = 33;
 	MIN_WRIST_WIDTH = 15;
 
