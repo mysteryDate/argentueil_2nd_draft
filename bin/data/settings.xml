@@ -15,8 +15,8 @@
             <IMGZ>2.779999971</IMGZ>
         </REGISTRATION>
         <NOREGISTRATION>
-            <X>97.919998169</X>
-            <Y>-12.040000916</Y>
+            <X>89.919998169</X>
+            <Y>-22.040000916</Y>
             <Z>2.549999952</Z>
         </NOREGISTRATION>
         <CROP>
@@ -525,9 +525,7 @@
                 </PT>
             </REGION>
         </REGIONS>
-        <X>89.919998169</X>
-        <Y>-22.040000916</Y>
-        <Z>2.549999952</Z>
+
     </PHASE>
     <PHASE>
         <NUMBER>2</NUMBER>
@@ -538,6 +536,7 @@
         <HANDTEXT>1</HANDTEXT>
         <FARTHRESHOLD>2</FARTHRESHOLD>
         <NEARTHRESHOLD>42</NEARTHRESHOLD>
+        <REGIONS />
     </PHASE>
     <PHASE>
         <NUMBER>3</NUMBER>
