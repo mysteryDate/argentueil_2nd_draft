@@ -1,3 +1,4 @@
 *.mov
 bin/data/videos/*
 *.app
+*.xcodeproj/project.xcworkspace/xcuserdata/*
