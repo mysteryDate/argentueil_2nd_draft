@@ -15,10 +15,10 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(5500);
-	currentPhase = 3;
-	nextPhaseFrame = 5600;
-	// nextPhaseFrame = video->getCurrentFrame() + 1;
+	// video->setFrame(1200);
+	currentPhase = 1;
+	// nextPhaseFrame = 1290;
+	nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
 	//kinect instructions
@@ -193,7 +193,7 @@ void ofApp::adjustPhase() {
 	int frame = video->getCurrentFrame();
 	if( frame >= nextPhaseFrame) { // Change phase
 		currentPhase++;
-		if(currentPhase >= 10)
+		if(currentPhase >= 9)
 			currentPhase = 0;
 		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
 		if(currentPhase == 5) {
