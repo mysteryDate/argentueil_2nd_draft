@@ -16,7 +16,7 @@ void ofApp::setup(){
 	// firstVideo.play();
 	video = &firstVideo;
 	// video->setFrame(1200);
-	currentPhase = 1;
+	currentPhase = -1;
 	// nextPhaseFrame = 1290;
 	nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
@@ -518,6 +518,7 @@ void ofApp::drawFeedback() {
 	<< "frame: " << video->getCurrentFrame() << endl
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
+	<< "kinect_z: " << kinect_z << endl
 	// << "playing: " << ofToString(video->isPlaying()) << endl
 	// << "Paused: " << ofToString(video->isPaused()) << endl
 	// << "speed: " << speed << endl
@@ -598,53 +599,63 @@ void ofApp::keyPressed(int key){
 		// 	secondVideo.setSpeed(speed);
 		// 	break;
 
-		case OF_KEY_LEFT: 
-			if(activeRegion == 0)
-				activeRegion = regions.size() - 1;
-			else
-				activeRegion--;
-			break;
-
-		case OF_KEY_RIGHT: 
-			if(activeRegion == regions.size() - 1)
-				activeRegion = 0;
-			else
-				activeRegion++;
-			break;
-
 		// case OF_KEY_LEFT: 
-		// 	kinect_x--;
+		// 	if(activeRegion == 0)
+		// 		activeRegion = regions.size() - 1;
+		// 	else
+		// 		activeRegion--;
 		// 	break;
 
 		// case OF_KEY_RIGHT: 
-		// 	kinect_x++;
+		// 	if(activeRegion == regions.size() - 1)
+		// 		activeRegion = 0;
+		// 	else
+		// 		activeRegion++;
 		// 	break;
 
-		// case OF_KEY_UP: 
-		// 	kinect_y--;
+		case OF_KEY_LEFT:
+			video_x--; 
+			// kinect_x--;
+			break;
+
+		case OF_KEY_RIGHT:
+			video_x++; 
+			// kinect_x++;
+			break;
+
+		case OF_KEY_UP:
+			video_y--; 
+			// kinect_y--;
+			break;
+
+		case OF_KEY_DOWN:
+			video_y++; 
+			// kinect_y++;
+			break;
+
+		// case 'Z': 
+		// 	kinect_z+=0.01;
 		// 	break;
 
-		// case OF_KEY_DOWN: 
-		// 	kinect_y++;
+		// case 'z': 
+		// 	kinect_z-=0.01;
 		// 	break;
 
-		// case 'W': 
-		// 	w++;
-		// 	h = w / video.getWidth() * video.getHeight();
-		// 	break;
+		case 'W': 
+			video_w++;
+			break;
 
-		// case 'w': 
-		// 	w--;
-		// 	h = w / video.getWidth() * video.getHeight();
-		// 	break;
+		case 'w': 
+			video_w--;
+			break;
 
-		// case 'H': 
-		// 	h++;
-		// 	break;
+		case 'H': 
+			video_h++;
+			break;
 
-		// case 'h': 
-		// 	h--;
-		// 	break;
+		case 'h': 
+			video_h--;
+			break;
 
 		// case 'R': 
 		// 	r+= 0.1;
@@ -661,14 +672,6 @@ void ofApp::keyPressed(int key){
 		// case OF_KEY_RIGHT:
 		// 	if(video->isPaused()) 
 		// 		video->setFrame(video->getCurrentFrame() + 1);
-
-		case 'Z': 
-			kinect_z += 0.01;
-			break;
-
-		case 'z': 
-			kinect_z -= 0.01;
-			break;
 
 		case '>':
 		case '.':
@@ -737,20 +740,25 @@ void ofApp::keyPressed(int key){
 			// 	}
 			// 	XML.popTag();
 			// }
-			// Saving calibration
-			// XML.pushTag(ofToString(PLATFORM));
-			// 	XML.pushTag("KINECT");
-			// 	if(REGISTRATION)
-			// 		XML.pushTag("REGISTRATION");
-			// 	else
-			// 		XML.pushTag("NOREGISTRATION");
+//			Saving calibration
+			XML.pushTag(ofToString(PLATFORM));
+				XML.pushTag("VIDEO");
+					XML.setValue("X", video_x);
+					XML.setValue("Y", video_y);
+					XML.setValue("W", video_w);
+					XML.setValue("H", video_h);
+				XML.pushTag("KINECT");
+				if(REGISTRATION)
+					XML.pushTag("REGISTRATION");
+				else
+					XML.pushTag("NOREGISTRATION");
 
-			// 			XML.setValue("X", kinect_x);
-			// 			XML.setValue("Y", kinect_y);
-			// 			XML.setValue("Z", kinect_z);
-			// 		XML.popTag();
-			// 	XML.popTag();
-			// XML.popTag();
+						XML.setValue("X", kinect_x);
+						XML.setValue("Y", kinect_y);
+						XML.setValue("Z", kinect_z);
+					XML.popTag();
+				XML.popTag();
+			XML.popTag();
 			XML.saveFile("settings.xml");
 			cout << "Settings saved!";
 			break;

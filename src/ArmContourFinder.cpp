@@ -215,11 +215,28 @@ ofPoint ArmContourFinder::findEnd(int n) {
 	ofPoint center = ofxCv::toOf(getCenter(n));
 	unsigned int l = getLabel(n);
 
+	int sides [4] = {0,0,0,0};
 	for (int i = 0; i < pts.size(); ++i)
 	{
 		if(pts[i].x <= bounds[0] + 2 || pts[i].y <= bounds[1] + 2
  			|| pts[i].x >= bounds[2] - 2 || pts[i].y >=  bounds[3] - 2) {
 			endPoints.push_back(pts[i]);
+		}
+		if(pts[i].x <= bounds[0] + 2)
+			sides[0]++;
+		if(pts[i].y <= bounds[1] + 2)
+			sides[1]++;
+		if(pts[i].x >= bounds[2] - 2)
+			sides[2]++;
+		if(pts[i].y >= bounds[3] - 2)
+			sides[3]++;
+	}
+	int maxSide = 0;
+	for (int i = 0; i < 4; ++i)
+	{
+		if(sides[i] > maxSide) {
+			maxSide = sides[i];
+			side[l] = i;
 		}
 	}
 	if(endPoints.size() > 0) {
@@ -236,10 +253,10 @@ ofPoint ArmContourFinder::findEnd(int n) {
 
 		endPoints.resize(1);
 
-		if(endPoints[0].x <= bounds[0] + 2) side[l] = 0;
-		else if(endPoints[0].y <= bounds[1] + 2) side[l] = 1;
-		else if(endPoints[0].x >= bounds[2] - 2) side[l] = 2;
-		else if(endPoints[0].y >= bounds[3] - 2) side[l] = 3;
+		// if(endPoints[0].x <= bounds[0] + 2) side[l] = 0;
+		// else if(endPoints[0].y <= bounds[1] + 2) side[l] = 1;
+		// else if(endPoints[0].x >= bounds[2] - 2) side[l] = 2;
+		// else if(endPoints[0].y >= bounds[3] - 2) side[l] = 3;
 	}
 
 
