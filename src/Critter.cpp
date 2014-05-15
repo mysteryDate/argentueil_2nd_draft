@@ -26,9 +26,15 @@ void Critter::update(ofVec2f nearestHand) {
 		currentFrame = 0;
 		nextFrame = 0;
 	}
-	if(!hidden) {
+	bool draw = true;
+	for (int i = 0; i < previousFrames.size(); ++i)
+	{
+		if(previousFrames[i])
+			draw = false;
+	}
+	if(!hidden and draw) {
 		p.x += v * cos(d/180*PI);
-		p.y += v * sin(d/180*PI); // Because y descends upwards
+		p.y += v * sin(d/180*PI); 
 	}
     
 	float time = ofGetElapsedTimef();

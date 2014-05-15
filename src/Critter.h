@@ -23,6 +23,7 @@ public:
 	float 	nextFrame; // for changing framerate
 	bool 	hidden;
 	int 	numFrames;
+	vector<bool> previousFrames; // if it was hidden in the past
 
 	vector< float > 	offsets;
 

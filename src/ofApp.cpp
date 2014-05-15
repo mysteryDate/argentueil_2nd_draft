@@ -14,10 +14,10 @@ void ofApp::setup(){
 	secondVideo.loadMovie("videos/Map_Argenteuil_P2_v11.mov");
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
-	video = &secondVideo;
-	video->setFrame(3300);
-	currentPhase = 6;
-	nextPhaseFrame = 3400;
+	video = &firstVideo;
+	video->setFrame(5500);
+	currentPhase = 3;
+	nextPhaseFrame = 5600;
 	// nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
@@ -327,6 +327,8 @@ void ofApp::updateBeavers() {
 		if(B->p.x > ofGetWindowWidth() + Iw or B->p.x < 0 - Iw or B->p.y > ofGetWindowHeight() + Iw or B->p.y < 0 - Iw)
 				Beavers.erase(Beavers.begin() + i);
 		// Collision
+		B->previousFrames.resize(5);
+		B->previousFrames.insert(B->previousFrames.begin(), B->hidden);
 		B->hidden = false; 
 		for (int j = 0; j < ContourFinder.size(); ++j)
 		{
@@ -349,7 +351,13 @@ void ofApp::drawBeavers() {
 	for (int i = 0; i < Beavers.size(); ++i)
 	{		
 		Critter CB = Beavers[i];
-		if(!CB.hidden) {
+		bool draw = true;		
+		for (int j = 0; j < CB.previousFrames.size(); ++j)
+		{
+			if(CB.previousFrames[j]) // Hidden was true
+				draw = false;
+		}
+		if(!CB.hidden and draw) {
 			ofPushMatrix();
 	        ofTranslate(CB.p.x, CB.p.y); // Translate to the center of the beaver
 			ofRotateZ(CB.d);
