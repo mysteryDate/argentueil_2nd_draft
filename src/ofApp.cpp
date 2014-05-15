@@ -572,8 +572,8 @@ void ofApp::loadSettings() {
 			else
 				XML.pushTag("NOREGISTRATION");
 					kinect_z = XML.getValue("Z", 2.77);
-					kinect_x = XML.getValue("X", 0) + crop_left * kinect_z;
-					kinect_y = XML.getValue("Y", 0) + crop_top * kinect_z;
+					kinect_x = XML.getValue("X", 0);
+					kinect_y = XML.getValue("Y", 0);
 				XML.popTag();
 		XML.popTag();
 	XML.popTag();
