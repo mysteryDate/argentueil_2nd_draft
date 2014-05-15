@@ -14,10 +14,10 @@ void ofApp::setup(){
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
 	video = &firstVideo;
-	// video->setFrame(1200);
-	currentPhase = -1;
-	// nextPhaseFrame = 1290;
-	nextPhaseFrame = video->getCurrentFrame() + 1;
+	video->setFrame(7100);
+	currentPhase = 4;
+	nextPhaseFrame = 7200;
+	// nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
 	loadSettings();
@@ -139,7 +139,7 @@ void ofApp::update(){
 				drawHandMask(ofColor(255,255,255,127), true);
 			ofPopMatrix();
 			// For a fade
-			float alpha = ofMap((nextPhaseFrame - video->getCurrentFrame()), 100, 0, 0, 7);
+			float alpha = ofMap((nextPhaseFrame - video->getCurrentFrame()), 100, 0, 0, 10);
 			ofPushStyle();
 			ofSetColor(255,255,255,round(alpha));
 			ofRect(0,0,video->getWidth(), video->getHeight());
