@@ -56,11 +56,6 @@ public:
 	int 				nearThreshold;
 	int 				farThreshold;
 	bool 				bLearnBackground;
-	// When using color as well
-	ofxCvColorImage 	colorImage;
-	ofxCvColorImage 	colorBackground;
-	int 				dThreshold;
-	int 				cThreshold;
 	// For cropping out un-desired regions
 	cv::Mat 			input;
 	cv::Mat 			croppedInput;
