@@ -7,7 +7,6 @@ void ofApp::setup(){
 	ofSetFrameRate(60);
 	ofBackground(0,0,0);  
 	XML.loadFile("settings.xml");
-	loadSettings();
 
 	firstVideo.loadMovie("videos/Map_Argenteuil_P1_v11.mov");
 	firstVideo.setLoopState(OF_LOOP_NONE);
@@ -21,6 +20,7 @@ void ofApp::setup(){
 	nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
+	loadSettings();
 	//kinect instructions
 	kinect.init();
 	kinect.setRegistration(REGISTRATION);
@@ -251,6 +251,7 @@ void ofApp::updateRegions() {
 			{
 				int x = XML.getValue("PT:X", 0, j);
 				int y = XML.getValue("PT:Y", 0, j);
+				ofPoint pt = utility::transform(ofPoint(x,y), video_x, video_y, video_w, video_h);
 				regions[name].addVertex(ofPoint(x,y));
 			}
 			XML.popTag();
@@ -518,7 +519,11 @@ void ofApp::drawFeedback() {
 	<< "frame: " << video->getCurrentFrame() << endl
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
-	<< "kinect_z: " << kinect_z << endl
+	// << "kinect_z: " << kinect_z << endl
+	<< "video_x: " << video_x << endl
+	<< "video_y: " << video_y << endl
+	<< "video_w: " << video_w << endl
+	<< "video_h: " << video_h << endl
 	// << "playing: " << ofToString(video->isPlaying()) << endl
 	// << "Paused: " << ofToString(video->isPaused()) << endl
 	// << "speed: " << speed << endl
@@ -633,13 +638,13 @@ void ofApp::keyPressed(int key){
 			// kinect_y++;
 			break;
 
-		// case 'Z': 
-		// 	kinect_z+=0.01;
-		// 	break;
+		case 'Z': 
+			// kinect_z+=0.01;
+			break;
 
-		// case 'z': 
-		// 	kinect_z-=0.01;
-		// 	break;
+		case 'z': 
+			// kinect_z-=0.01;
+			break;
 
 		case 'W': 
 			video_w++;
@@ -747,6 +752,7 @@ void ofApp::keyPressed(int key){
 					XML.setValue("Y", video_y);
 					XML.setValue("W", video_w);
 					XML.setValue("H", video_h);
+				XML.popTag();
 				XML.pushTag("KINECT");
 				if(REGISTRATION)
 					XML.pushTag("REGISTRATION");
