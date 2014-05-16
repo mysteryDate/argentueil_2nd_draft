@@ -26,6 +26,7 @@
 // Standards
 #include <cmath>
 
+#define START_PHASE 5
 #define REGISTRATION false
 
 class ofApp : public ofBaseApp{
@@ -51,8 +52,8 @@ public:
 
 	// Input processing
 	ofxKinect 			kinect;	
-	ofxCvGrayscaleImage	depthImage;
-	ofxCvGrayscaleImage depthBackground;
+	ofxCvGrayscaleImage	kinectImg;
+	ofxCvGrayscaleImage kinectBackground;
 	int 				nearThreshold;
 	int 				farThreshold;
 	bool 				bLearnBackground;

@@ -9,24 +9,28 @@ void ofApp::setup(){
 	XML.loadFile("settings.xml");
 
 	firstVideo.loadMovie("videos/Argenteuille_edit_p1_V12.mov");
-	firstVideo.setLoopState(OF_LOOP_NONE);
 	secondVideo.loadMovie("videos/Argenteuille_edit_p2_v12.mov");
+	firstVideo.setLoopState(OF_LOOP_NONE);
 	secondVideo.setLoopState(OF_LOOP_NONE);
-	// firstVideo.play();
-	video = &firstVideo;
-	// video->setFrame(2700);
-	currentPhase = -1;
-	// nextPhaseFrame = 5600;
-	nextPhaseFrame = video->getCurrentFrame() + 1;
-	speed = 1;
 
 	loadSettings();
+	currentPhase = START_PHASE - 1;
+	XML.pushTag("PHASEINFORMATION");
+		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
+		int v = XML.getValue("PHASE:VIDEO", 1);
+		if(v == 1)
+			video = &firstVideo;
+		if(v == 2)
+			video = &secondVideo;
+		video->setFrame(nextPhaseFrame - 1);
+	XML.popTag();
+	speed = 1;
+
 	//kinect instructions
 	kinect.init();
-	kinect.setRegistration(REGISTRATION);
 	kinect.open();
-	depthImage.allocate(kinect.width, kinect.height);
-	depthBackground.allocate(kinect.width, kinect.height);
+	kinectImg.allocate(kinect.width, kinect.height);
+	kinectBackground.allocate(kinect.width, kinect.height);
 
 	// Hand display
 	font.loadFont("fonts/AltoPro-Normal.ttf", 12);
@@ -51,8 +55,6 @@ void ofApp::setup(){
 	ripples.allocate(video->getWidth(), video->getHeight());
 	bounce.allocate(video->getWidth(), video->getHeight());
 	// Animated mask
-	// maskVid.loadMovie("masks/RiviereMask_03_.mov");
-	// currentMask.allocate(maskVid.getWidth(), maskVid.getHeight(), OF_IMAGE_COLOR_ALPHA);
 	ofDirectory dir("masks/animated_mask");
 	dir.allowExt("png");
 	dir.listDir();
@@ -74,24 +76,6 @@ void ofApp::setup(){
 	shader.linkProgram();
 	fbo.allocate(video->getWidth(), video->getHeight());
 	maskFbo.allocate(video->getWidth(), video->getHeight());
-	// Apparently I need to clear these too
-	maskFbo.begin();
-		ofClear(0,0,0,255);
-	maskFbo.end();
-	fbo.begin();
-		ofClear(0,0,0,255);
-	fbo.end();
-	// brushImg.loadImage("brush.png");
-
-	// Creating church regions
-	// activeRegion = 0;
-	// ofBuffer buffer = ofBufferFromFile("river_names.txt");
-	// while(!buffer.isLastLine() ) {
-	// 	string name = buffer.getNextLine().c_str();
-	// 	regionNames.push_back( name );
-	// 	regions.insert(pair<string, ofPolyline>(name, ofPolyline()));
-	// }
-
 }	
 
 //--------------------------------------------------------------
@@ -102,16 +86,16 @@ void ofApp::update(){
 
 	if(kinect.isFrameNew()) {
 
-		depthImage.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
+		kinectImg.setFromPixels(kinect.getDepthPixels(), kinect.width, kinect.height);
 		if(bLearnBackground) {
-			depthBackground = depthImage;
+			kinectBackground = kinectImg;
 			bLearnBackground = false;
 		}
 		// Background subtraction
-		depthImage -= depthBackground;
+		kinectImg -= kinectBackground;
 		// Remove out of bounds
-		unsigned char *pix = depthImage.getPixels();
-		for (int i = 0; i < depthImage.getHeight() * depthImage.getWidth(); ++i)
+		unsigned char *pix = kinectImg.getPixels();
+		for (int i = 0; i < kinectImg.getHeight() * kinectImg.getWidth(); ++i)
 		{
 			if(pix[i] > nearThreshold || pix[i] < farThreshold)
 				pix[i] = 0;
@@ -119,7 +103,7 @@ void ofApp::update(){
 				pix[i] = 255;
 		}
 
-		input = ofxCv::toCv(depthImage);
+		input = ofxCv::toCv(kinectImg);
 		cv::Rect crop_roi = cv::Rect(crop_left, crop_top, 
 			kinect.width - crop_left - crop_right,
 			kinect.height - crop_top - crop_bottom);
@@ -210,8 +194,19 @@ void ofApp::adjustPhase() {
 		currentPhase++;
 		if(currentPhase >= 9)
 			currentPhase = 0;
-		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
+		if(currentPhase == 0) {
+			secondVideo.stop();
+			secondVideo.setFrame(0);
+			firstVideo.play();
+			video = &firstVideo;
+		}
 		if(currentPhase == 5) {
+			maskFbo.begin();
+				ofClear(0,0,0,255);
+			maskFbo.end();
+			fbo.begin();
+				ofClear(0,0,0,255);
+			fbo.end();
 			secondVideo.setFrame(1300);
 			secondVideo.update();
 		}
@@ -221,40 +216,23 @@ void ofApp::adjustPhase() {
 			firstVideo.stop();
 			firstVideo.setFrame(0);
 		}
-		if(currentPhase == 0) {
-			maskFbo.begin();
-				ofClear(0,0,0,255);
-			maskFbo.end();
-			fbo.begin();
-				ofClear(0,0,0,255);
-			fbo.end();
-			secondVideo.stop();
-			secondVideo.setFrame(0);
-			firstVideo.play();
-			video = &firstVideo;
-		}
+
 		if(XML.getValue("PHASE:RIPPLE", 0, currentPhase))
 			bRipple = true;
 		else
 			bRipple = false;
-		farThreshold = XML.getValue("PHASE:FARTHRESHOLD", 2, currentPhase);
-		nearThreshold = XML.getValue("PHASE:NEARTHRESHOLD", 42, currentPhase);
-		if(XML.getValue("PHASE:HANDTEXT", 0, currentPhase) == 1)
+
+		if(XML.getValue("PHASE:HANDTEXT", 0, currentPhase))
 			bHandText = true;
 		else
 			bHandText = false;
+
+		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
+		farThreshold = XML.getValue("PHASE:FARTHRESHOLD", 2, currentPhase);
+		nearThreshold = XML.getValue("PHASE:NEARTHRESHOLD", 42, currentPhase);
 		updateRegions();
 	}
 	XML.popTag();
-
-	// // Phase 5 is the magical phase
-	// if(currentPhase == 5) {
-	// 	// ofImage img;
-	// 	// img.setFromPixels(secondVideo.getPixels(), secondVideo.getWidth(), secondVideo.getHeight(), OF_IMAGE_COLOR);
-	// 	// img.saveImage("second_video_still.png");
-	// 	// secondVideo.update();
-	// }
-
 }
 
 void ofApp::updateRegions() {
@@ -302,31 +280,28 @@ void ofApp::updateRipples() {
 
 		ofPopMatrix();
 
-		if(currentPhase == 0)
-			if(video->getCurrentFrame() < 600) { // all ice TODO MGN
-				ofPushStyle();
-				ofSetColor(0,0,0);
-				ofFill();
-				ofRect(0,0, video->getWidth(), video->getHeight());
-				ofPopStyle();
-			}
-			else {
-                int frame = video->getCurrentFrame();
-				while(true) {
-					if( animatedMask.find(frame) != animatedMask.end() ) {
-						animatedMask[frame].draw(0,0, video->getWidth(), video->getHeight());
-						break;
-					}
-					frame--;
-					if(frame < 600)
-						break;
+		if(currentPhase == 0) {
+            int frame = video->getCurrentFrame();
+			while(true) {
+				if( animatedMask.find(frame) != animatedMask.end() ) {
+					animatedMask[frame].draw(0,0, video->getWidth(), video->getHeight());
+					break;
+				}
+				frame--;
+				if(frame < 0) {
+					ofPushStyle();
+					ofSetColor(0,0,0);
+					ofFill();
+					ofRect(0,0, video->getWidth(), video->getHeight());
+					ofPopStyle();
 				}
 			}
+		}
 		else
 			riverMask.draw(0,0);
 		ofPopStyle();
-
 	ripples.end();
+	
 	ripples.update();
 	bounce << ripples;
 }
@@ -518,7 +493,7 @@ void ofApp::drawHandText() {
 void ofApp::drawFeedback() {
 
 	ofPushStyle();
-	depthImage.draw(0,0);
+	kinectImg.draw(0,0);
 	ofSetColor(0,255,0);
 	ofTranslate(crop_left, crop_top);
 		ContourFinder.draw();
@@ -552,40 +527,16 @@ void ofApp::drawFeedback() {
 		i++;
 	}
 	ofSetColor(255,255,255);
-	// regions[regionNames[activeRegion]].draw();
 	ofPopStyle();
 	ofPopMatrix();
 
 	stringstream reportStream;
 	reportStream
-	// << "nearThreshold: " << nearThreshold << endl
-	// << "farThreshold: " << farThreshold << endl
 	<< "frame: " << video->getCurrentFrame() << endl
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
-	<< "kinect_z: " << kinect_z << endl
-	// << "x: " << x << endl
-	// << "y: " << y << endl
-	// << "z: " << z << endl
-	// << "r: " << r << endl
-	// << "playing: " << ofToString(video->isPlaying()) << endl
-	// << "Paused: " << ofToString(video->isPaused()) << endl
 	<< "speed: " << speed << endl
-	// << "minVelocity: " << minVelocity << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
-	if(ContourFinder.hands.size() == 1)
-		reportStream << "velocity: " << ofToString(ContourFinder.hands[0].velocity) << endl;
-	// font.drawString(regionNames[activeRegion], 20, 800);
-	// if  ( ContourFinder.size() == 1 ) {
-	// 	ofRectangle rect = ofxCv::toOf(ContourFinder.getBoundingRect(0));
-	// 	ofPoint min = rect.getMin();
-	// 	ofPoint max = rect.getMax();
-	// 	reportStream 
-	// 	<< "minx: " << min.x << endl
-	// 	<< "miny: " << min.y << endl
-	// 	<< "maxx: " << max.x << endl
-	// 	<< "maxy: " << max.y << endl;
-	// }
 
 	ofDrawBitmapString(reportStream.str(), 20, 600);
 	ofPopStyle();
@@ -636,115 +587,20 @@ void ofApp::keyPressed(int key){
 
 	switch(key) {
 
-		// case OF_KEY_DOWN: 
-		// 	speed *= 0.9;
-		// 	firstVideo.setSpeed(speed);
-		// 	secondVideo.setSpeed(speed);
-		// 	break;
-
-		// case OF_KEY_UP: 
-		// 	speed *= 1.1;
-		// 	firstVideo.setSpeed(speed);
-		// 	secondVideo.setSpeed(speed);
-		// 	break;
-
-		// case OF_KEY_LEFT: 
-		// 	if(activeRegion == 0)
-		// 		activeRegion = regions.size() - 1;
-		// 	else
-		// 		activeRegion--;
-		// 	break;
-
-		// case OF_KEY_RIGHT: 
-		// 	if(activeRegion == regions.size() - 1)
-		// 		activeRegion = 0;
-		// 	else
-		// 		activeRegion++;
-		// 	break;
-
 		case OF_KEY_LEFT:
-			// x--; 
 			kinect_x--;
 			break;
 
 		case OF_KEY_RIGHT:
-			// x++; 
 			kinect_x++;
 			break;
 
 		case OF_KEY_UP:
-			// y--; 
 			kinect_y--;
 			break;
 
 		case OF_KEY_DOWN:
-			// y++; 
 			kinect_y++;
-			break;
-
-		case 'Z':
-			// z+=0.01; 
-			kinect_z+=0.01;
-			break;
-
-		case 'z':
-			// z-=0.01; 
-			kinect_z-=0.01;
-			break;
-
-		case 'W': 
-			video_w++;
-			break;
-
-		case 'w': 
-			video_w--;
-			break;
-
-		case 'H': 
-			video_h++;
-			break;
-
-		case 'h': 
-			video_h--;
-			break;
-
-		case 'R': 
-			r+= 0.1;
-			break;
-
-		case 'r': 
-			r-= 0.1;
-			break;
-
-		// case OF_KEY_LEFT:
-		// 	if(video->isPaused()) 
-		// 		video->setFrame(video->getCurrentFrame() - 1);
-
-		// case OF_KEY_RIGHT:
-		// 	if(video->isPaused()) 
-		// 		video->setFrame(video->getCurrentFrame() + 1);
-
-		case '>':
-		case '.':
-			farThreshold ++;
-			if (farThreshold > 255) farThreshold = 255;
-			break;
-			
-		case '<':
-		case ',':
-			farThreshold --;
-			if (farThreshold < 0) farThreshold = 0;
-			break;
-			
-		case '+':
-		case '=':
-			nearThreshold ++;
-			if (nearThreshold > 255) nearThreshold = 255;
-			break;
-			
-		case '-':
-			nearThreshold --;
-			if (nearThreshold < 0) nearThreshold = 0;
 			break;
 
 		case 'f':
@@ -759,49 +615,13 @@ void ofApp::keyPressed(int key){
 			break;
 		}
 
-		case 'V':
-			minVelocity += 0.1;
-			break;
-
-		case 'v':
-			minVelocity -= 0.1;
-			break;
-
 		case OF_KEY_RETURN:
 			bLearnBackground = true;
 			break;
 
 		case 'S': {
-			// For saving regions
-			// XML.pushTag("PHASEINFORMATION");
-			// 	XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
-			// 		if (XML.getNumTags("REGIONS") == 0)
-			// 			XML.addTag("REGIONS");
-			// 		XML.pushTag("REGIONS");
-			// 			XML.clear();
-			// 			for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
-			// 				int rNum = XML.addTag("REGION");
-			// 				XML.setValue("REGION:NAME", iterator->first, rNum);
-			// 				XML.pushTag("REGION", rNum);
-			// 				for (int i = 0; i < iterator->second.size(); ++i)
-			// 				{
-			// 					int vNum = XML.addTag("PT");
-			// 					XML.setValue("PT:X", iterator->second[i].x, vNum);
-			// 					XML.setValue("PT:Y", iterator->second[i].y, vNum);
-			// 				}
-			// 				XML.popTag();
-			// 			}
-			// 		XML.popTag();
-			// 	XML.popTag();
-			// XML.popTag();
 			// Saving calibration
 			XML.pushTag(ofToString(PLATFORM));
-				XML.pushTag("VIDEO");
-					XML.setValue("X", video_x);
-					XML.setValue("Y", video_y);
-					XML.setValue("W", video_w);
-					XML.setValue("H", video_h);
-				XML.popTag();
 				XML.pushTag("KINECT");
 				if(REGISTRATION)
 					XML.pushTag("REGISTRATION");

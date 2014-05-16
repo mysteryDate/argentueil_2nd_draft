@@ -14,8 +14,6 @@ Critter::Critter(int numFrames) {
     
 	this-> numFrames = numFrames;
 
-	vectors[0] = ofVec2f(v * cos(d/180*PI) * 10, v * sin(d/180*PI) * 10);
-
 }
 
 void Critter::update(ofVec2f nearestHand) {
@@ -44,10 +42,7 @@ void Critter::update(ofVec2f nearestHand) {
 	v = fmax(MIN_VELOCITY, fmin(v, MAX_VELOCITY));
 	d = fmax(0, fmin(d, 360));
 
-	vectors[0] = ofVec2f(v * cos(d/180*PI) * 10, v * sin(d/180*PI) * 10);
-
 	if(nearestHand.length() != 0) {
-		vectors[2] = nearestHand;
 		float fear = ofMap(nearestHand.length(), 500, 0, 0, 1, true);
         float angle = vectors[0].angle(nearestHand);
 		if(angle < 0)
@@ -55,25 +50,4 @@ void Critter::update(ofVec2f nearestHand) {
 		d += ofMap((angle - 180) * fear, -180, 180, -20, 20);
 		v += ofMap(fear, 0, 1, 0, 0.5);
 	}
-
-	vectors[1] = ofVec2f(v * cos(d/180*PI) * 10, v * sin(d/180*PI) * 10);
-}
-
-// Returns a vector from critter to closest hand
-ofVec2f Critter::findClosestHand(vector < ofPoint > handCentroids) {
-
-	ofVec2f nearestHand;
-	float minDist = 999999; // I hate doing this
-
-	for (int i = 0; i < handCentroids.size(); ++i)
-	{
-		ofPoint center = handCentroids[i];
-		float dist = ofDistSquared(p.x, p.y, center.x, center.y);
-		if(dist < minDist) {
-			minDist = dist;
-			nearestHand = ofVec2f(center.x - p.x, center.y - p.y);
-		}
-	}
-
-	return nearestHand;
 }

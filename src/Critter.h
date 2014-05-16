@@ -27,12 +27,6 @@ public:
 
 	vector< float > 	offsets;
 
-	map < int, ofVec2f > vectors;
-
 	void update(ofVec2f nearestHand);
-
-private:
-
-	ofVec2f findClosestHand(vector< ofPoint > handCentroids);
 
 };

@@ -49,7 +49,7 @@
         <NUMBER>0</NUMBER>
         <VIDEO>1</VIDEO>
         <NAME>Intro</NAME>
-        <STARTFRAME>0</STARTFRAME>
+        <STARTFRAME>1</STARTFRAME>
         <RIPPLE>1</RIPPLE>
         <HANDTEXT>0</HANDTEXT>
         <FARTHRESHOLD>2</FARTHRESHOLD>
