@@ -79,6 +79,9 @@ public:
 	ofxRipples	ripples;
 	ofxBounce 	bounce;
 	ofImage 	riverMask;
+	map<int, ofImage> animatedMask;
+	ofVideoPlayer maskVid;
+	int 		maskNumber;
 	bool 		bRipple;
 
 	// Beaver game

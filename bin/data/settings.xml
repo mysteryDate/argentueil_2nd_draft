@@ -1,9 +1,5 @@
 <MAC>
     <VIDEO>
-        <X>-96.000000000</X>
-        <Y>55.000000000</Y>
-        <W>1884.000000000</W>
-        <H>1047.000000000</H>
     </VIDEO>
     <KINECT>
         <REGISTRATION>
@@ -16,7 +12,7 @@
         </REGISTRATION>
         <NOREGISTRATION>
             <X>97.399993896</X>
-            <Y>-12.299999237</Y>
+            <Y>-8.299999237</Y>
             <Z>2.549999952</Z>
         </NOREGISTRATION>
         <CROP>
@@ -1178,7 +1174,7 @@
         <NUMBER>7</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Churches</NAME>
-        <STARTFRAME>3400</STARTFRAME>
+        <STARTFRAME>2800</STARTFRAME>
         <RIPPLE>0</RIPPLE>
         <HANDTEXT>1</HANDTEXT>
         <FARTHRESHOLD>2</FARTHRESHOLD>
@@ -2126,7 +2122,7 @@
         <NUMBER>8</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Stations</NAME>
-        <STARTFRAME>4300</STARTFRAME>
+        <STARTFRAME>3700</STARTFRAME>
         <RIPPLE>0</RIPPLE>
         <HANDTEXT>1</HANDTEXT>
         <FARTHRESHOLD>2</FARTHRESHOLD>
@@ -2275,6 +2271,42 @@
             </REGION>
             <REGION>
                 <NAME>Station L&apos;original</NAME>
+                <PT>
+                    <X>559.000000000</X>
+                    <Y>700.000000000</Y>
+                </PT>
+                <PT>
+                    <X>645.000000000</X>
+                    <Y>700.000000000</Y>
+                </PT>
+                <PT>
+                    <X>658.000000000</X>
+                    <Y>768.000000000</Y>
+                </PT>
+                <PT>
+                    <X>650.000000000</X>
+                    <Y>817.000000000</Y>
+                </PT>
+                <PT>
+                    <X>569.000000000</X>
+                    <Y>834.000000000</Y>
+                </PT>
+                <PT>
+                    <X>509.000000000</X>
+                    <Y>835.000000000</Y>
+                </PT>
+                <PT>
+                    <X>510.000000000</X>
+                    <Y>760.000000000</Y>
+                </PT>
+                <PT>
+                    <X>535.000000000</X>
+                    <Y>714.000000000</Y>
+                </PT>
+                <PT>
+                    <X>560.000000000</X>
+                    <Y>700.000000000</Y>
+                </PT>
             </REGION>
         </REGIONS>
     </PHASE>
@@ -2282,7 +2314,7 @@
         <NUMBER>9</NUMBER>
         <VIDEO>2</VIDEO>
         <NAME>Photos</NAME>
-        <STARTFRAME>5440</STARTFRAME>
+        <STARTFRAME>15440</STARTFRAME>
         <RIPPLE>0</RIPPLE>
         <HANDTEXT>1</HANDTEXT>
         <FARTHRESHOLD>2</FARTHRESHOLD>

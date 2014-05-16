@@ -8,16 +8,16 @@ void ofApp::setup(){
 	ofBackground(0,0,0);  
 	XML.loadFile("settings.xml");
 
-	firstVideo.loadMovie("videos/Map_Argenteuil_P1_v11.mov");
+	firstVideo.loadMovie("videos/Argenteuille_edit_p1_V12.mov");
 	firstVideo.setLoopState(OF_LOOP_NONE);
-	secondVideo.loadMovie("videos/Map_Argenteuil_P2_v11.mov");
+	secondVideo.loadMovie("videos/Argenteuille_edit_p2_v12.mov");
 	secondVideo.setLoopState(OF_LOOP_NONE);
 	// firstVideo.play();
 	video = &firstVideo;
-	video->setFrame(7100);
-	currentPhase = 4;
-	nextPhaseFrame = 7200;
-	// nextPhaseFrame = video->getCurrentFrame() + 1;
+	// video->setFrame(2700);
+	currentPhase = -1;
+	// nextPhaseFrame = 5600;
+	nextPhaseFrame = video->getCurrentFrame() + 1;
 	speed = 1;
 
 	loadSettings();
@@ -50,6 +50,20 @@ void ofApp::setup(){
 	ofEnableAlphaBlending();
 	ripples.allocate(video->getWidth(), video->getHeight());
 	bounce.allocate(video->getWidth(), video->getHeight());
+	// Animated mask
+	ofDirectory dir("masks/animated_mask");
+	dir.allowExt("png");
+	dir.listDir();
+	for (int i = 0; i < dir.numFiles(); ++i)
+	{
+		string name = dir.getName(i);
+		ofImage img;
+		img.loadImage("masks/animated_mask/"+name);
+		name = name.substr(0,4);
+		int frame = std::atoi(name.c_str());
+		animatedMask[frame] = img;
+	}
+	maskNumber = 0;
 	riverMask.loadImage("masks/river_mask_v3.png");
 	bRipple = false;
 
@@ -196,7 +210,7 @@ void ofApp::adjustPhase() {
 			currentPhase = 0;
 		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
 		if(currentPhase == 5) {
-			secondVideo.setFrame(1900);
+			secondVideo.setFrame(1300);
 			secondVideo.update();
 		}
 		if(currentPhase == 6) {
@@ -206,6 +220,12 @@ void ofApp::adjustPhase() {
 			firstVideo.setFrame(0);
 		}
 		if(currentPhase == 0) {
+			maskFbo.begin();
+				ofClear(0,0,0,255);
+			maskFbo.end();
+			fbo.begin();
+				ofClear(0,0,0,255);
+			fbo.end();
 			secondVideo.stop();
 			secondVideo.setFrame(0);
 			firstVideo.play();
@@ -264,7 +284,8 @@ void ofApp::updateRipples() {
 
 	bounce.setTexture(video->getTextureReference(), 1);
 	int frameDiff = nextPhaseFrame - video->getCurrentFrame();
-	ripples.damping = ofMap(frameDiff, 100, 0, 0.995, 0, true);
+	if(currentPhase != 0)
+		ripples.damping = ofMap(frameDiff, 100, 0, 0.995, 0, true);
 	// Water ripples
 	ripples.begin();
 		ofPushStyle();
@@ -281,7 +302,23 @@ void ofApp::updateRipples() {
 
 		ofSetColor(0,0,0);
 		ofFill();
-		if(currentPhase != 0)
+		if(currentPhase == 0)
+			if(video->getCurrentFrame() < 600) { // all ice TODO MGN
+				ofRect(0,0, video->getWidth(), video->getHeight());
+			}
+			else {
+                int frame = video->getCurrentFrame();
+                while(true) {
+                	if( animatedMask.find(frame) != animatedMask.end() ) {
+						animatedMask[frame].draw(0,0);
+						break;
+					}
+					frame--;
+					if(frame < 600)
+						break;
+                }
+			}
+		else
 			riverMask.draw(0,0);
 		ofPopStyle();
 
@@ -467,7 +504,7 @@ void ofApp::drawHandText() {
 			float tSize = max(tWidth, 2*tHeight);
 			ofTranslate(-textCenter.x, -textCenter.y);
 			float size = ofDist(tip.x, tip.y, center.x, center.y);
-			// ofScale(size/tSize, size/tSize);
+			ofScale(size/tSize, size/tSize);
 			font.drawString(palmText, 0, 0);
 		ofPopMatrix();
 	}
@@ -529,7 +566,7 @@ void ofApp::drawFeedback() {
 	// << "r: " << r << endl
 	// << "playing: " << ofToString(video->isPlaying()) << endl
 	// << "Paused: " << ofToString(video->isPaused()) << endl
-	// << "speed: " << speed << endl
+	<< "speed: " << speed << endl
 	// << "minVelocity: " << minVelocity << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 	if(ContourFinder.hands.size() == 1)
@@ -621,25 +658,25 @@ void ofApp::keyPressed(int key){
 		// 		activeRegion++;
 		// 	break;
 
-		case OF_KEY_LEFT:
-			// x--; 
-			kinect_x--;
-			break;
+		// case OF_KEY_LEFT:
+		// 	// x--; 
+		// 	kinect_x--;
+		// 	break;
 
-		case OF_KEY_RIGHT:
-			// x++; 
-			kinect_x++;
-			break;
+		// case OF_KEY_RIGHT:
+		// 	// x++; 
+		// 	kinect_x++;
+		// 	break;
 
-		case OF_KEY_UP:
-			// y--; 
-			kinect_y--;
-			break;
+		// case OF_KEY_UP:
+		// 	// y--; 
+		// 	kinect_y--;
+		// 	break;
 
-		case OF_KEY_DOWN:
-			// y++; 
-			kinect_y++;
-			break;
+		// case OF_KEY_DOWN:
+		// 	// y++; 
+		// 	kinect_y++;
+		// 	break;
 
 		case 'Z':
 			// z+=0.01; 

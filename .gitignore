@@ -2,3 +2,4 @@
 bin/data/videos/*
 *.app
 *.xcodeproj/project.xcworkspace/xcuserdata/*
+*.xcodeproj/xcuserdata/*
