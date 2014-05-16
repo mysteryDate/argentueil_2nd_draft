@@ -3,3 +3,4 @@ bin/data/videos/*
 *.app
 *.xcodeproj/project.xcworkspace/xcuserdata/*
 *.xcodeproj/xcuserdata/*
+bin/data/masks/animated_mask/*

@@ -81,6 +81,7 @@ public:
 	ofImage 	riverMask;
 	map<int, ofImage> animatedMask;
 	ofVideoPlayer maskVid;
+	ofImage 		currentMask;
 	int 		maskNumber;
 	bool 		bRipple;
 

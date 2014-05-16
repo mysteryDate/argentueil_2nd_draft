@@ -1,5 +1,9 @@
 <MAC>
     <VIDEO>
+        <X>0.000000000</X>
+        <Y>0.000000000</Y>
+        <W>1920.000000000</W>
+        <H>1080.000000000</H>
     </VIDEO>
     <KINECT>
         <REGISTRATION>
@@ -11,8 +15,8 @@
             <IMGZ>2.779999971</IMGZ>
         </REGISTRATION>
         <NOREGISTRATION>
-            <X>97.399993896</X>
-            <Y>-8.299999237</Y>
+            <X>212.000000000</X>
+            <Y>31.000000000</Y>
             <Z>2.549999952</Z>
         </NOREGISTRATION>
         <CROP>

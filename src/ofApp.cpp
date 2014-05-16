@@ -51,6 +51,8 @@ void ofApp::setup(){
 	ripples.allocate(video->getWidth(), video->getHeight());
 	bounce.allocate(video->getWidth(), video->getHeight());
 	// Animated mask
+	// maskVid.loadMovie("masks/RiviereMask_03_.mov");
+	// currentMask.allocate(maskVid.getWidth(), maskVid.getHeight(), OF_IMAGE_COLOR_ALPHA);
 	ofDirectory dir("masks/animated_mask");
 	dir.allowExt("png");
 	dir.listDir();
@@ -300,23 +302,25 @@ void ofApp::updateRipples() {
 
 		ofPopMatrix();
 
-		ofSetColor(0,0,0);
-		ofFill();
 		if(currentPhase == 0)
 			if(video->getCurrentFrame() < 600) { // all ice TODO MGN
+				ofPushStyle();
+				ofSetColor(0,0,0);
+				ofFill();
 				ofRect(0,0, video->getWidth(), video->getHeight());
+				ofPopStyle();
 			}
 			else {
                 int frame = video->getCurrentFrame();
-                while(true) {
-                	if( animatedMask.find(frame) != animatedMask.end() ) {
-						animatedMask[frame].draw(0,0);
+				while(true) {
+					if( animatedMask.find(frame) != animatedMask.end() ) {
+						animatedMask[frame].draw(0,0, video->getWidth(), video->getHeight());
 						break;
 					}
 					frame--;
 					if(frame < 600)
 						break;
-                }
+				}
 			}
 		else
 			riverMask.draw(0,0);
@@ -658,25 +662,25 @@ void ofApp::keyPressed(int key){
 		// 		activeRegion++;
 		// 	break;
 
-		// case OF_KEY_LEFT:
-		// 	// x--; 
-		// 	kinect_x--;
-		// 	break;
+		case OF_KEY_LEFT:
+			// x--; 
+			kinect_x--;
+			break;
 
-		// case OF_KEY_RIGHT:
-		// 	// x++; 
-		// 	kinect_x++;
-		// 	break;
+		case OF_KEY_RIGHT:
+			// x++; 
+			kinect_x++;
+			break;
 
-		// case OF_KEY_UP:
-		// 	// y--; 
-		// 	kinect_y--;
-		// 	break;
+		case OF_KEY_UP:
+			// y--; 
+			kinect_y--;
+			break;
 
-		// case OF_KEY_DOWN:
-		// 	// y++; 
-		// 	kinect_y++;
-		// 	break;
+		case OF_KEY_DOWN:
+			// y++; 
+			kinect_y++;
+			break;
 
 		case 'Z':
 			// z+=0.01; 
@@ -769,27 +773,27 @@ void ofApp::keyPressed(int key){
 
 		case 'S': {
 			// For saving regions
-			XML.pushTag("PHASEINFORMATION");
-				XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
-					if (XML.getNumTags("REGIONS") == 0)
-						XML.addTag("REGIONS");
-					XML.pushTag("REGIONS");
-						XML.clear();
-						for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
-							int rNum = XML.addTag("REGION");
-							XML.setValue("REGION:NAME", iterator->first, rNum);
-							XML.pushTag("REGION", rNum);
-							for (int i = 0; i < iterator->second.size(); ++i)
-							{
-								int vNum = XML.addTag("PT");
-								XML.setValue("PT:X", iterator->second[i].x, vNum);
-								XML.setValue("PT:Y", iterator->second[i].y, vNum);
-							}
-							XML.popTag();
-						}
-					XML.popTag();
-				XML.popTag();
-			XML.popTag();
+			// XML.pushTag("PHASEINFORMATION");
+			// 	XML.pushTag("PHASE", currentPhase); // push phase, have to push in one at a time (annoying)
+			// 		if (XML.getNumTags("REGIONS") == 0)
+			// 			XML.addTag("REGIONS");
+			// 		XML.pushTag("REGIONS");
+			// 			XML.clear();
+			// 			for(auto iterator=regions.begin(); iterator!=regions.end(); ++iterator) {
+			// 				int rNum = XML.addTag("REGION");
+			// 				XML.setValue("REGION:NAME", iterator->first, rNum);
+			// 				XML.pushTag("REGION", rNum);
+			// 				for (int i = 0; i < iterator->second.size(); ++i)
+			// 				{
+			// 					int vNum = XML.addTag("PT");
+			// 					XML.setValue("PT:X", iterator->second[i].x, vNum);
+			// 					XML.setValue("PT:Y", iterator->second[i].y, vNum);
+			// 				}
+			// 				XML.popTag();
+			// 			}
+			// 		XML.popTag();
+			// 	XML.popTag();
+			// XML.popTag();
 			// Saving calibration
 			XML.pushTag(ofToString(PLATFORM));
 				XML.pushTag("VIDEO");
