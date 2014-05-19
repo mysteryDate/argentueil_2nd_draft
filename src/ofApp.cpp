@@ -615,7 +615,7 @@ void ofApp::drawFeedback() {
 	<< "speed: " << speed << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 
-	ofDrawBitmapString(reportStream.str(), 20, 600);
+	ofDrawBitmapString(reportStream.str(), 100, 600);
 	ofPopStyle();
 
 }
@@ -650,7 +650,7 @@ void ofApp::loadSettings() {
 	// ContourFinder
 	ContourFinder.setMinArea(XML.getValue("CV:MINAREA", 1000));
 	ContourFinder.bounds[0] = 1;
-	ContourFinder.bounds[1] = 1;
+	ContourFinder.bounds[1] = 38; // TODO WHY???
 	ContourFinder.bounds[2] = kinect.width - crop_left - crop_right - 1;
 	ContourFinder.bounds[3] = kinect.height - crop_top - crop_bottom - 1;
 
