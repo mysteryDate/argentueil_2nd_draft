@@ -14,8 +14,6 @@ Critter::Critter(int numFrames) {
     
 	this-> numFrames = numFrames;
 
-	velocity = ofVec2f(v * cos(d/180*PI) * 10, v * sin(d/180*PI) * 10);
-
 }
 
 void Critter::update(ofVec2f nearestHand) {
@@ -44,8 +42,6 @@ void Critter::update(ofVec2f nearestHand) {
 
 	v = fmax(MIN_VELOCITY, fmin(v, MAX_VELOCITY));
 	d = ofWrapDegrees(d);
-
-	velocity = ofVec2f(v * cos(d/180*PI) * 10, v * sin(d/180*PI) * 10);
 
 	if(nh.length() != 0) {
 		ofVec2f vel = ofVec2f(v * cos(d/180*PI), v * sin(d/180*PI));

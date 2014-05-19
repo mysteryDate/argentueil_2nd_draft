@@ -26,7 +26,7 @@
 // Standards
 #include <cmath>
 
-#define START_PHASE 4
+#define START_PHASE 9
 
 #define REGISTRATION false
 
@@ -37,7 +37,7 @@ public:
 	void loadSettings();
 
 	void update();
-	void	 adjustPhase();
+	void adjustPhase();
 	void updateRegions();
 	void updateRipples();
 	void updateBeavers();
@@ -46,6 +46,7 @@ public:
 	void drawHandMask(ofColor color = ofColor(0,0,0), bool bDrawArms = true, bool scale = false);
 	void drawBeavers();
 	void drawHandText();
+	void drawHandImages();
 	void drawFeedback();
 
 	void keyPressed(int key);
@@ -113,6 +114,9 @@ public:
 	int crop_left, crop_top, crop_right, crop_bottom;
 	// Feedback
 	bool bDisplayFeedback;
+
+	// Just as a test
+	ofImage handImage;
 
 	//============ Non Permanent Variables ======//
 	// Calibration

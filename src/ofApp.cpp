@@ -17,7 +17,7 @@ void ofApp::setup(){
 	currentPhase = START_PHASE - 1;
 	XML.pushTag("PHASEINFORMATION");
 		nextPhaseFrame = XML.getValue("PHASE:STARTFRAME", nextPhaseFrame + 1000, currentPhase + 1);
-		int v = XML.getValue("PHASE:VIDEO", 1);
+		int v = XML.getValue("PHASE:VIDEO", 1, currentPhase + 1);
 		if(v == 1)
 			video = &firstVideo;
 		if(v == 2)
@@ -76,6 +76,8 @@ void ofApp::setup(){
 	shader.linkProgram();
 	fbo.allocate(video->getWidth(), video->getHeight());
 	maskFbo.allocate(video->getWidth(), video->getHeight());
+
+	handImage.loadImage("hand_images/Gare_IMG_7769.JPG");
 }	
 
 //--------------------------------------------------------------
@@ -110,7 +112,7 @@ void ofApp::update(){
 		croppedInput = input(crop_roi).clone();
 
 		ContourFinder.findContours(croppedInput);
-		if(bHandText)
+		if(bHandText || currentPhase == 9)
 			ContourFinder.update();
 		else
 			ContourFinder.hands.clear();
@@ -176,6 +178,11 @@ void ofApp::draw(){
 
 	drawBeavers();
 
+	// Picture phase
+	if(currentPhase == 9) {
+		drawHandImages();
+	}
+
 	if(bDisplayFeedback)
 		drawFeedback();
 
@@ -192,7 +199,7 @@ void ofApp::adjustPhase() {
 	int frame = video->getCurrentFrame();
 	if( frame >= nextPhaseFrame) { // Change phase
 		currentPhase++;
-		if(currentPhase >= 9)
+		if(currentPhase >= 10)
 			currentPhase = 0;
 		if(currentPhase == 0) {
 			secondVideo.stop();
@@ -432,6 +439,75 @@ void ofApp::drawHandMask(ofColor color, bool bDrawArms, bool scale) {
 	ofPopMatrix();
 	ofPopStyle();
 
+}
+
+void ofApp::drawHandImages() {
+
+	// maskFbo.begin();
+	// 	ofClear(0,0,0,255);
+	// 	ofPushMatrix();
+	// 		// ofTranslate(-video_x, -video_y);
+	// 		// ofScale(video->getWidth() / video_w, video->getHeight() / video_h);
+	// 		// ofRotateZ(-video_r);
+	// 		drawHandMask(ofColor(255,255,255), false);
+	// 	ofPopMatrix();
+	// maskFbo.end();
+
+	// fbo.begin();
+	// 	ofClear(0,0,0,0);
+	// fbo.end();
+
+	for (int i = 0; i < ContourFinder.hands.size(); ++i)
+	{
+		unsigned int label = ContourFinder.hands[i].label;
+		stableHands[label].resize(2);
+
+		ofPoint center 	= ContourFinder.hands[i].centroid;
+		ofPoint tip 	= ContourFinder.hands[i].tip;
+		int side 		= ContourFinder.hands[i].side;
+		if( ContourFinder.hands[i].velocity.length() < minVelocity ) {
+			center = stableHands[label][0];
+			tip = stableHands[label][1];
+		}
+		else {
+			stableHands[label][0] = center;
+			stableHands[label][1] = tip;
+		}
+		// Transform to proper reference frame
+		center.x = center.x * kinect_z + kinect_x;
+		center.y = center.y * kinect_z + kinect_y;
+		tip.x = tip.x * kinect_z + kinect_x;
+		tip.y = tip.y * kinect_z + kinect_y;
+
+		// ofImage img = handImage;
+
+		// fbo.begin();
+		// shader.begin();
+		// shader.setUniformTexture("maskTex", maskFbo.getTextureReference(), 1);
+		ofPushMatrix();
+			ofTranslate(center.x, center.y);
+			// Proper rotation
+			float h = sqrt( pow(center.x - tip.x, 2) + pow(center.y - tip.y, 2) );
+			float angle =  ofRadToDeg( asin( (tip.y - center.y) / h ));
+			if(tip.x < center.x) angle *= -1;
+			if (side == 1) angle += 180;
+			if ( (side == 0 or side == 2 ) and tip.y < center.y ) 
+				angle += 180;
+			ofRotateZ(angle);
+
+
+			float size = ofDist(tip.x, tip.y, center.x, center.y) * 2;
+			int imgWidth = handImage.getWidth();
+			ofScale(size/imgWidth, size/imgWidth);
+			handImage.setAnchorPercent(0.5,0.5);
+			handImage.draw(0,0);
+		ofPopMatrix();
+		// shader.end();
+		// fbo.end();
+
+	}
+	// fbo.draw(video_x, video_y, video_w, video_h);
+	// fbo.draw(0,0);
 }
 
 void ofApp::drawHandText() {
