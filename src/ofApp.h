@@ -26,7 +26,7 @@
 // Standards
 #include <cmath>
 
-#define START_PHASE 0
+#define START_PHASE 4
 
 #define REGISTRATION false
 

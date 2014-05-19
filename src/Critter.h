@@ -17,6 +17,7 @@ public:
 	Critter(int numFrames);
 
 	float 	v;
+	ofVec2f velocity;
 	float 	d; //Direction, in degrees, because what was I thinking?
 	ofPoint p; // From the center of the critter
 	int 	currentFrame;

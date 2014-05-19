@@ -14,10 +14,13 @@ Critter::Critter(int numFrames) {
     
 	this-> numFrames = numFrames;
 
+	velocity = ofVec2f(v * cos(d/180*PI) * 10, v * sin(d/180*PI) * 10);
+
 }
 
 void Critter::update(ofVec2f nearestHand) {
 
+    ofVec2f nh = nearestHand;
 	nextFrame += ofMap(v, 0, 10, 0, 2);
 	currentFrame = floor(nextFrame);
 	if(currentFrame >= numFrames) {
@@ -26,7 +29,7 @@ void Critter::update(ofVec2f nearestHand) {
 	}
 	bool draw = true;
 	for (int i = 0; i < previousFrames.size(); ++i)
-	{
+	{ 
 		if(previousFrames[i])
 			draw = false;
 	}
@@ -40,15 +43,15 @@ void Critter::update(ofVec2f nearestHand) {
 	d += 	ofSignedNoise(time * TIME_SCALE + offsets[1]) * DIRECTION_DISPLACEMENT_SCALE;
 
 	v = fmax(MIN_VELOCITY, fmin(v, MAX_VELOCITY));
-	d = fmax(0, fmin(d, 360));
+	d = ofWrapDegrees(d);
 
-	if(nearestHand.length() != 0) {
+	velocity = ofVec2f(v * cos(d/180*PI) * 10, v * sin(d/180*PI) * 10);
+
+	if(nh.length() != 0) {
 		ofVec2f vel = ofVec2f(v * cos(d/180*PI), v * sin(d/180*PI));
-		float fear = ofMap(nearestHand.length(), 500, 0, 0, 1, true);
-        float angle = vel.angle(nearestHand);
-		if(angle < 0)
-			angle += 360;
-		d += ofMap((angle - 180) * fear, -180, 180, -20, 20);
-		v += ofMap(fear, 0, 1, 0, 0.5);
+		float fear = ofMap(nh.length(), 500, 0, 0, 1, true);
+        float angle = vel.angle(nh);
+		d += ofMap((abs(angle) - 180) * fear, -180, 0, -30 * (angle)/abs(angle), 0);
+		v += ofMap((abs(angle) - 90) * fear, -90, 90, -0.3, 0.7);
 	}
 }
