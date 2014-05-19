@@ -23,6 +23,7 @@
         </CROP>
     </KINECT>
 </MAC>
+<SCREENSAVERTIME>10000</SCREENSAVERTIME>
 <CV>
     <MINAREA>1000</MINAREA>
     <BOUNDS>
@@ -76,6 +77,7 @@
                     <Y>400.000000000</Y>
                 </PT>
                 <PT>
+
                     <X>1243.000000000</X>
                     <Y>431.000000000</Y>
                 </PT>

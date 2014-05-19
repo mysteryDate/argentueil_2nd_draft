@@ -26,7 +26,7 @@
 // Standards
 #include <cmath>
 
-#define START_PHASE 9
+#define START_PHASE 0
 
 #define REGISTRATION false
 
@@ -48,6 +48,8 @@ public:
 	void drawHandText();
 	void drawHandImages();
 	void drawFeedback();
+
+	void startScreensaver();
 
 	void keyPressed(int key);
 	void mousePressed(int x, int y, int button);
@@ -117,6 +119,13 @@ public:
 
 	// Just as a test
 	ofImage handImage;
+
+	// For screensaver
+	unsigned long long  lastTime;
+	unsigned long long  screensaverTime;
+	unsigned long long  screensaverEndTime;
+	bool 				bScreensaver;
+	ofVideoPlayer 		screensaver;
 
 	//============ Non Permanent Variables ======//
 	// Calibration

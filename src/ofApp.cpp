@@ -76,8 +76,19 @@ void ofApp::setup(){
 	shader.linkProgram();
 	fbo.allocate(video->getWidth(), video->getHeight());
 	maskFbo.allocate(video->getWidth(), video->getHeight());
+	maskFbo.begin();
+		ofClear(0,0,0,255);
+	maskFbo.end();
+	fbo.begin();
+		ofClear(0,0,0,0);
+	fbo.end();
 
 	handImage.loadImage("hand_images/Gare_IMG_7769.JPG");
+	screensaver.loadMovie("videos/Argenteuille_ScreenSaver_v1.mov");
+    screensaver.setFrame(0);
+    screensaver.update();
+	lastTime = ofGetSystemTimeMicros();
+	bScreensaver = false;
 }	
 
 //--------------------------------------------------------------
@@ -116,7 +127,68 @@ void ofApp::update(){
 			ContourFinder.update();
 		else
 			ContourFinder.hands.clear();
+
+		if(ContourFinder.size() > 0) {
+			if(bScreensaver) {
+				screensaverEndTime = ofGetSystemTimeMicros();
+				maskFbo.begin();
+					ofClear(0,0,0,255);
+				maskFbo.end();
+			}
+			bScreensaver = false;
+			lastTime = ofGetSystemTimeMicros();
+		}
 	}
+
+	unsigned long long idleTime = (ofGetSystemTimeMicros() - lastTime)/1000;
+	if(idleTime >= (screensaverTime - 2000) && !bScreensaver) { // Screensaver fade
+		maskFbo.begin();
+			// For a fade
+			float alpha = ofMap(screensaverTime - idleTime, 2000, 0, 0, 255);
+			ofPushStyle();
+			ofSetColor(255,255,255,round(alpha));
+			ofRect(0,0,video->getWidth(), video->getHeight());
+			ofPopStyle();
+		maskFbo.end();
+
+		fbo.begin();
+			ofClear(0,0,0,0);
+			shader.begin();
+				shader.setUniformTexture("maskTex", maskFbo.getTextureReference(), 1);
+				screensaver.update();
+				screensaver.draw(0,0);
+			shader.end();
+		fbo.end();
+	}
+	if(idleTime >= screensaverTime && !bScreensaver) {
+		bScreensaver = true;
+		startScreensaver();
+	}
+	if(screensaverEndTime - ofGetSystemTimeMicros() < 1000) {
+		maskFbo.begin();
+			// For a fade
+			float alpha = ofMap(screensaverEndTime - ofGetSystemTimeMicros(), 0, 1000, 255, 0);
+			ofPushStyle();
+			ofSetColor(255,255,255,round(alpha));
+			ofRect(0,0,video->getWidth(), video->getHeight());
+			ofPopStyle();
+		maskFbo.end();
+
+		fbo.begin();
+			ofClear(0,0,0,0);
+			shader.begin();
+				shader.setUniformTexture("maskTex", maskFbo.getTextureReference(), 1);
+				screensaver.update();
+				screensaver.draw(0,0);
+			shader.end();
+		fbo.end();
+	}
+	if(screensaverEndTime - ofGetSystemTimeMicros() > 1000 && !bScreensaver) {
+		screensaver.stop();
+		screensaver.setFrame(0);
+	}
+
+	if(!bScreensaver) {
 	// Water ripples on 1,2,3,4,7,8
 	if(bRipple) 
 		updateRipples();
@@ -156,21 +228,20 @@ void ofApp::update(){
 			shader.end();
 		fbo.end();
 	}
+	}
 
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 
-	ofPushMatrix();
-		if(bRipple)
-			bounce.draw(video_x, video_y, video_w, video_h);
-		else { 
-			video->draw(video_x, video_y, video_w, video_h);
-			if(currentPhase == 5)
-				fbo.draw(video_x, video_y, video_w, video_h);
-		}
-	ofPopMatrix();
+	if(bRipple)
+		bounce.draw(video_x, video_y, video_w, video_h);
+	else { 
+		video->draw(video_x, video_y, video_w, video_h);
+	}
+	fbo.draw(video_x, video_y, video_w, video_h);
+
 
 	if(bHandText)
 		drawHandMask(ofColor(0,0,0));
@@ -191,13 +262,38 @@ void ofApp::draw(){
 //--------------------------------------------------------------
 // Custom functions
 //--------------------------------------------------------------
+void ofApp::startScreensaver() {
+	maskFbo.begin();
+		ofClear(0,0,0,255);
+	maskFbo.end();
+	fbo.begin();
+		ofClear(0,0,0,0);
+	fbo.end();
+	video->stop();
+	video->setFrame(0);
+	video = &screensaver;
+	bRipple = false;
+	currentPhase = -1;
+	nextPhaseFrame = -1;
+	video->play();
+	video->update();
+	video->setLoopState(OF_LOOP_NORMAL);
+}
+
 void ofApp::adjustPhase() {
 
 	video->update();
+
 	XML.pushTag("PHASEINFORMATION");
 
 	int frame = video->getCurrentFrame();
-	if( frame >= nextPhaseFrame) { // Change phase
+	if( frame >= nextPhaseFrame && !bScreensaver) { // Change phase
+		maskFbo.begin();
+			ofClear(0,0,0,255);
+		maskFbo.end();
+		fbo.begin();
+			ofClear(0,0,0,0);
+		fbo.end();
 		currentPhase++;
 		if(currentPhase >= 10)
 			currentPhase = 0;
@@ -208,12 +304,6 @@ void ofApp::adjustPhase() {
 			video = &firstVideo;
 		}
 		if(currentPhase == 5) {
-			maskFbo.begin();
-				ofClear(0,0,0,255);
-			maskFbo.end();
-			fbo.begin();
-				ofClear(0,0,0,255);
-			fbo.end();
 			secondVideo.setFrame(1300);
 			secondVideo.update();
 		}
@@ -613,6 +703,7 @@ void ofApp::drawFeedback() {
 	<< "currentPhase: " << currentPhase << endl
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
 	<< "speed: " << speed << endl
+	<< "idle time: " << ofToString((ofGetSystemTimeMicros() - lastTime)/1000000) << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 
 	ofDrawBitmapString(reportStream.str(), 100, 600);
@@ -656,6 +747,7 @@ void ofApp::loadSettings() {
 
 	farThreshold = XML.getValue("KINECT:FARTHRESHOLD", 2);
 	nearThreshold = XML.getValue("KINECT:NEARTHRESHOLD", farThreshold + 40);
+	screensaverTime = XML.getValue("SCREENSAVERTIME", 1800);
 
 }
 
