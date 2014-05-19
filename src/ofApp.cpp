@@ -294,6 +294,7 @@ void ofApp::updateRipples() {
 					ofFill();
 					ofRect(0,0, video->getWidth(), video->getHeight());
 					ofPopStyle();
+                    break;
 				}
 			}
 		}

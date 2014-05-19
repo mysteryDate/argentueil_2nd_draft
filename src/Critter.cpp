@@ -43,8 +43,9 @@ void Critter::update(ofVec2f nearestHand) {
 	d = fmax(0, fmin(d, 360));
 
 	if(nearestHand.length() != 0) {
+		ofVec2f vel = ofVec2f(v * cos(d/180*PI), v * sin(d/180*PI));
 		float fear = ofMap(nearestHand.length(), 500, 0, 0, 1, true);
-        float angle = vectors[0].angle(nearestHand);
+        float angle = vel.angle(nearestHand);
 		if(angle < 0)
 			angle += 360;
 		d += ofMap((angle - 180) * fear, -180, 180, -20, 20);

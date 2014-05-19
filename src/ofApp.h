@@ -26,7 +26,8 @@
 // Standards
 #include <cmath>
 
-#define START_PHASE 5
+#define START_PHASE 0
+
 #define REGISTRATION false
 
 class ofApp : public ofBaseApp{
@@ -36,7 +37,7 @@ public:
 	void loadSettings();
 
 	void update();
-	void adjustPhase();
+	void	 adjustPhase();
 	void updateRegions();
 	void updateRipples();
 	void updateBeavers();
