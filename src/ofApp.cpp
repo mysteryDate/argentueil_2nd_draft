@@ -89,6 +89,8 @@ void ofApp::setup(){
     screensaver.update();
 	lastTime = ofGetSystemTimeMicros();
 	bScreensaver = false;
+	bTransition = false;
+	screensaverEndTime = UULONG_MAX;
 }	
 
 //--------------------------------------------------------------
@@ -127,24 +129,28 @@ void ofApp::update(){
 			ContourFinder.update();
 		else
 			ContourFinder.hands.clear();
+        
 
 		if(ContourFinder.size() > 0) {
-			if(bScreensaver) {
+			if(bScreensaver && !bTransition) {
 				screensaverEndTime = ofGetSystemTimeMicros();
 				maskFbo.begin();
 					ofClear(0,0,0,255);
 				maskFbo.end();
 			}
-			bScreensaver = false;
-			lastTime = ofGetSystemTimeMicros();
+			if(!bTransition) {
+				bScreensaver = false;
+				lastTime = ofGetSystemTimeMicros();
+			}
 		}
 	}
 
 	unsigned long long idleTime = (ofGetSystemTimeMicros() - lastTime)/1000;
 	if(idleTime >= (screensaverTime - 2000) && !bScreensaver) { // Screensaver fade
+		bTransition = true;
 		maskFbo.begin();
 			// For a fade
-			float alpha = ofMap(screensaverTime - idleTime, 2000, 0, 0, 255);
+			float alpha = ofMap(screensaverTime - idleTime, 2000, 0, 0, 127);
 			ofPushStyle();
 			ofSetColor(255,255,255,round(alpha));
 			ofRect(0,0,video->getWidth(), video->getHeight());
@@ -161,13 +167,17 @@ void ofApp::update(){
 		fbo.end();
 	}
 	if(idleTime >= screensaverTime && !bScreensaver) {
+		bTransition = false;
 		bScreensaver = true;
 		startScreensaver();
 	}
-	if(screensaverEndTime - ofGetSystemTimeMicros() < 1000) {
+	if(ofGetSystemTimeMicros() - screensaverEndTime < 2000000) {
+		bTransition = true;
+		int diff = ofGetSystemTimeMicros() - screensaverEndTime;
 		maskFbo.begin();
 			// For a fade
-			float alpha = ofMap(screensaverEndTime - ofGetSystemTimeMicros(), 0, 1000, 255, 0);
+			ofClear(0,0,0,0);
+			float alpha = ofMap(diff, 0, 2000000, 255, 0);
 			ofPushStyle();
 			ofSetColor(255,255,255,round(alpha));
 			ofRect(0,0,video->getWidth(), video->getHeight());
@@ -183,9 +193,11 @@ void ofApp::update(){
 			shader.end();
 		fbo.end();
 	}
-	if(screensaverEndTime - ofGetSystemTimeMicros() > 1000 && !bScreensaver) {
+	if(ofGetSystemTimeMicros() - screensaverEndTime > 2000000 && !bScreensaver && ofGetSystemTimeMicros() > screensaverEndTime) {
+		bTransition = false;
 		screensaver.stop();
 		screensaver.setFrame(0);
+		screensaverEndTime = UULONG_MAX;
 	}
 
 	if(!bScreensaver) {
@@ -704,6 +716,7 @@ void ofApp::drawFeedback() {
 	<< "nextPhaseFrame: " << nextPhaseFrame << endl
 	<< "speed: " << speed << endl
 	<< "idle time: " << ofToString((ofGetSystemTimeMicros() - lastTime)/1000000) << endl
+	<< "screensaverFrame: " << ofToString(screensaver.getCurrentFrame()) << endl
 	<< "framerate: " << ofToString(ofGetFrameRate()) << endl;
 
 	ofDrawBitmapString(reportStream.str(), 100, 600);

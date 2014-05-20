@@ -92,17 +92,3 @@ vector< ofPoint > utility::findClosestPoints(ofPolyline one, ofPolyline two)
 
 	return closest;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

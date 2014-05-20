@@ -29,6 +29,8 @@
 #define START_PHASE 0
 
 #define REGISTRATION false
+// Don't ask
+#define UULONG_MAX 18446744073709551615
 
 class ofApp : public ofBaseApp{
 
@@ -81,14 +83,14 @@ public:
 	ofImage 			brushImg;
 
 	// Ripples effect
-	ofxRipples	ripples;
-	ofxBounce 	bounce;
-	ofImage 	riverMask;
-	map<int, ofImage> animatedMask;
-	ofVideoPlayer maskVid;
-	ofImage 		currentMask;
-	int 		maskNumber;
-	bool 		bRipple;
+	ofxRipples			ripples;
+	ofxBounce 			bounce;
+	ofImage 			riverMask;
+	map<int, ofImage> 	animatedMask;
+	ofVideoPlayer 		maskVid;
+	ofImage 			currentMask;
+	int 				maskNumber;
+	bool 				bRipple;
 
 	// Beaver game
 	vector< Critter > 	Beavers;
@@ -103,6 +105,8 @@ public:
 	// For determining what's going on
 	int currentPhase;
 	int nextPhaseFrame;
+	// For transitions between phases
+	bool bTransition;
 
 	// Font display
 	ofxTrueTypeFontUC 	font;
@@ -126,6 +130,7 @@ public:
 	unsigned long long  screensaverEndTime;
 	bool 				bScreensaver;
 	ofVideoPlayer 		screensaver;
+
 
 	//============ Non Permanent Variables ======//
 	// Calibration
