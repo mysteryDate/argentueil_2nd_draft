@@ -267,7 +267,7 @@ ofPoint ArmContourFinder::findEnd(int n) {
 			// assume they're still on the same side
 			ofPoint mark;
 			if(thisSide == 0 or thisSide == 2)
-				mark = ofPoint(bounds[thisSide], centroid.y); // TODO, any side
+				mark = ofPoint(bounds[thisSide], centroid.y);
 			else
 				mark = ofPoint(centroid.x, bounds[thisSide]);
 			endPoints.push_back(polylines[n].getClosestPoint(mark));

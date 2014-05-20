@@ -90,7 +90,7 @@ void ofApp::setup(){
 	lastTime = ofGetSystemTimeMicros();
 	bScreensaver = false;
 	bTransition = false;
-	screensaverEndTime = UULONG_MAX;
+	screensaverEndTime = UULONG_MAX; // HACK
 }	
 
 //--------------------------------------------------------------
