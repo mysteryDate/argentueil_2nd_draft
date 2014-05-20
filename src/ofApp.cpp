@@ -8,8 +8,8 @@ void ofApp::setup(){
 	ofBackground(0,0,0);  
 	XML.loadFile("settings.xml");
 
-	firstVideo.loadMovie("videos/Argenteuille_edit_p1_V12.mov");
-	secondVideo.loadMovie("videos/Argenteuille_edit_p2_v12.mov");
+	firstVideo.loadMovie("videos/Argenteuille_edit_p1_v14.mov");
+	secondVideo.loadMovie("videos/Argenteuille_edit_p2_v14.mov");
 	firstVideo.setLoopState(OF_LOOP_NONE);
 	secondVideo.setLoopState(OF_LOOP_NONE);
 
@@ -84,7 +84,7 @@ void ofApp::setup(){
 	fbo.end();
 
 	handImage.loadImage("hand_images/Gare_IMG_7769.JPG");
-	screensaver.loadMovie("videos/Argenteuille_ScreenSaver_v1.mov");
+	screensaver.loadMovie("videos/Argenteuille_ScreenSaver_V14.mov");
     screensaver.setFrame(0);
     screensaver.update();
 	lastTime = ofGetSystemTimeMicros();
@@ -201,45 +201,45 @@ void ofApp::update(){
 	}
 
 	if(!bScreensaver) {
-	// Water ripples on 1,2,3,4,7,8
-	if(bRipple) 
-		updateRipples();
+		// Water ripples on 1,2,3,4,7,8
+		if(bRipple) 
+			updateRipples();
 
-	// Beaver phase
-	if(currentPhase == 4) {
-		if(ofGetFrameNum() % 30 == 0 && Beavers.size() < 120) {
-			Critter newBeaver = Critter(numBeaverFrames); 
-			Beavers.push_back(newBeaver);
+		// Beaver phase
+		if(currentPhase == 4) {
+			if(ofGetFrameNum() % 30 == 0 && Beavers.size() < 120) {
+				Critter newBeaver = Critter(numBeaverFrames); 
+				Beavers.push_back(newBeaver);
+			}
 		}
-	}
-	if(Beavers.size() > 0)
-		updateBeavers();
+		if(Beavers.size() > 0)
+			updateBeavers();
 
-	// Transition phase
-	if(currentPhase == 5) {
-		maskFbo.begin();
-			ofPushMatrix();
-			ofTranslate(-video_x, -video_y);
-			ofScale(video->getWidth() / video_w, video->getHeight() / video_h);
-			ofRotateZ(-video_r);
-				drawHandMask(ofColor(255,255,255,127), true);
-			ofPopMatrix();
-			// For a fade
-			float alpha = ofMap((nextPhaseFrame - video->getCurrentFrame()), 100, 0, 0, 10);
-			ofPushStyle();
-			ofSetColor(255,255,255,round(alpha));
-			ofRect(0,0,video->getWidth(), video->getHeight());
-			ofPopStyle();
-		maskFbo.end();
+		// Transition phase
+		if(currentPhase == 5) {
+			maskFbo.begin();
+				ofPushMatrix();
+				ofTranslate(-video_x, -video_y);
+				ofScale(video->getWidth() / video_w, video->getHeight() / video_h);
+				ofRotateZ(-video_r);
+					drawHandMask(ofColor(255,255,255,127), true);
+				ofPopMatrix();
+				// For a fade
+				float alpha = ofMap((nextPhaseFrame - video->getCurrentFrame()), 100, 0, 0, 10);
+				ofPushStyle();
+				ofSetColor(255,255,255,round(alpha));
+				ofRect(0,0,video->getWidth(), video->getHeight());
+				ofPopStyle();
+			maskFbo.end();
 
-		fbo.begin();
-			ofClear(0,0,0,0);
-			shader.begin();
-				shader.setUniformTexture("maskTex", maskFbo.getTextureReference(), 1);
-				secondVideo.draw(0,0);
-			shader.end();
-		fbo.end();
-	}
+			fbo.begin();
+				ofClear(0,0,0,0);
+				shader.begin();
+					shader.setUniformTexture("maskTex", maskFbo.getTextureReference(), 1);
+					secondVideo.draw(0,0);
+				shader.end();
+			fbo.end();
+		}
 	}
 
 }
@@ -307,9 +307,10 @@ void ofApp::adjustPhase() {
 			ofClear(0,0,0,0);
 		fbo.end();
 		currentPhase++;
-		if(currentPhase >= 10)
+		if(currentPhase >= 11)
 			currentPhase = 0;
 		if(currentPhase == 0) {
+			ripples.damping = 0.995;
 			secondVideo.stop();
 			secondVideo.setFrame(0);
 			firstVideo.play();
@@ -545,20 +546,6 @@ void ofApp::drawHandMask(ofColor color, bool bDrawArms, bool scale) {
 
 void ofApp::drawHandImages() {
 
-	// maskFbo.begin();
-	// 	ofClear(0,0,0,255);
-	// 	ofPushMatrix();
-	// 		// ofTranslate(-video_x, -video_y);
-	// 		// ofScale(video->getWidth() / video_w, video->getHeight() / video_h);
-	// 		// ofRotateZ(-video_r);
-	// 		drawHandMask(ofColor(255,255,255), false);
-	// 	ofPopMatrix();
-	// maskFbo.end();
-
-	// fbo.begin();
-	// 	ofClear(0,0,0,0);
-	// fbo.end();
-
 	for (int i = 0; i < ContourFinder.hands.size(); ++i)
 	{
 		unsigned int label = ContourFinder.hands[i].label;
@@ -581,11 +568,6 @@ void ofApp::drawHandImages() {
 		tip.x = tip.x * kinect_z + kinect_x;
 		tip.y = tip.y * kinect_z + kinect_y;
 
-		// ofImage img = handImage;
-
-		// fbo.begin();
-		// shader.begin();
-		// shader.setUniformTexture("maskTex", maskFbo.getTextureReference(), 1);
 		ofPushMatrix();
 			ofTranslate(center.x, center.y);
 			// Proper rotation
@@ -604,12 +586,7 @@ void ofApp::drawHandImages() {
 			handImage.setAnchorPercent(0.5,0.5);
 			handImage.draw(0,0);
 		ofPopMatrix();
-		// shader.end();
-		// fbo.end();
-
 	}
-	// fbo.draw(video_x, video_y, video_w, video_h);
-	// fbo.draw(0,0);
 }
 
 void ofApp::drawHandText() {
